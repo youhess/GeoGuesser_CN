@@ -1,0 +1,37 @@
+# ========== Unity Specific ========== #
+/Library/
+*/Library/*
+/Temp/
+/Obj/
+/Build/
+/Builds/
+/Logs/
+/UserSettings/
+
+# ========== Visual Studio & JetBrains Rider ========== #
+.vs/
+*.sln
+*.csproj
+*.unityproj
+*.suo
+*.user
+*.pidb
+*.booproj
+*.svd
+*.tmp
+*.bak
+*.ncb
+*.VC.db
+*.opendb
+
+# ========== Unity Package Manager ========== #
+/Packages/
+*.asset
+*.meta
+*.pidb
+*.pdb
+/ProjectSettings/EditorBuildSettings.asset
+/ProjectSettings/ProjectVersion.txt
+
+# ========== UdonSharp Cache Files ========== #
+/UdonSharpProject/
