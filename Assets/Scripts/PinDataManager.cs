@@ -96,7 +96,17 @@ public class PinDataManager : UdonSharpBehaviour
             //SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdatePinVisibility)); // 有可能要在所有客户端执行，onDeserialization不一定会触发
         
     }
-
+    public void SetHideOtherPins()
+    {
+        //if (!Networking.IsOwner(gameObject)) return;
+        Debug.Log($"[PinDataManager] 设置所有Pin不可见");
+        showAllPins = false;
+        // 立即在本地执行可见性更新
+        //RequestSerialization();  // 会触发其他客户端的 OnDeserialization
+        // 应该每一个客户端都调用一次
+        UpdatePinVisibility();
+        //SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdatePinVisibility)); // 有可能要在所有客户端执行，onDeserialization不一定会触发
+    }
 
     public void InitializeRounds(int rounds)
     {
