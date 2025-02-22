@@ -232,6 +232,37 @@ public class PinController : UdonSharpBehaviour
 
     }
 
+    // 更新可见性的公共方法
+    public void UpdateVisibility(bool isVisible)
+    {
+        Renderer[] renderers = GetComponentsInChildren<Renderer>();
+        foreach (Renderer renderer in renderers)
+        {
+            foreach (Material mat in renderer.materials)
+            {
+                Color color = mat.color;
+                color.a = isVisible ? 1.0f : 0.0f;
+                mat.color = color;
+
+                mat.SetFloat("_Mode", isVisible ? 0 : 3);
+                mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                mat.SetInt("_ZWrite", isVisible ? 1 : 0);
+                mat.DisableKeyword("_ALPHATEST_ON");
+                mat.EnableKeyword("_ALPHABLEND_ON");
+                mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                mat.renderQueue = isVisible ? -1 : 3000;
+            }
+        }
+
+        CanvasGroup[] canvasGroups = GetComponentsInChildren<CanvasGroup>(true);
+        foreach (CanvasGroup canvasGroup in canvasGroups)
+        {
+            canvasGroup.alpha = isVisible ? 1.0f : 0.0f;
+            canvasGroup.interactable = isVisible;
+            canvasGroup.blocksRaycasts = isVisible;
+        }
+    }
 
     private void HandlePinPlacement()
     {

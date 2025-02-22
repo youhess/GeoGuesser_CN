@@ -10,6 +10,7 @@ using TMPro;
 using VRC.Udon.Common;
 using VRC.SDK3.Data;
 using BestHTTP.SecureProtocol.Org.BouncyCastle.Ocsp;
+using System;
 
 [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
 public class GameManager : UdonSharpBehaviour
@@ -26,12 +27,107 @@ public class GameManager : UdonSharpBehaviour
     //private GameObject[] playerPins;
 
     [Header("Panorama Settings")]
-    [SerializeField]
-    public VRCUrl[] imageUrls;
+    //[SerializeField]
+    //public VRCUrl[] imageUrls;
+    // Initialize VRCUrl array
+    private VRCUrl[] imageUrls = { 
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/01.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/02.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/03.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/04.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/05.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/06.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/07.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/08.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/09.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/10.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/11.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/12.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/13.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/14.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/15.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/16.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/17.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/18.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/19.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/20.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/21.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/22.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/23.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/24.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/25.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/26.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/27.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/28.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/29.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/30.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/31.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/32.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/33.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/34.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/35.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/36.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/37.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/38.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/39.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/40.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/41.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/42.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/43.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/44.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/45.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/46.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/47.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/48.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/49.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/50.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/51.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/52.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/53.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/54.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/55.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/56.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/57.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/58.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/59.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/60.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/61.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/62.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/63.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/64.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/65.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/66.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/67.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/68.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/69.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/70.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/71.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/72.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/73.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/74.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/75.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/76.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/77.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/78.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/79.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/80.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/81.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/82.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/83.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/84.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/85.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/86.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/87.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/88.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/89.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/90.jpg"),
+    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/91.jpg")
+    };
+
     [SerializeField]
     private Renderer sphereRenderer;
-    [UdonSynced, System.NonSerialized]
-    private int currentImageIndex = -1;
+    [UdonSynced]
+    private int currentImageIndex = -1; // 当前显示的图片索引
     private VRCImageDownloader imageDownloader;
     private Texture2D[] downloadedTextures;
 
@@ -45,13 +141,14 @@ public class GameManager : UdonSharpBehaviour
     [Header("Game Data")]
     public LocationRoundData locationData;
     public LatLongMapper latLongMapper;
+    public PinDataManager pinDataManager; // 用于同步玩家的经纬度信息
 
     [Header("Game Settings")]
     public int minPlayers = 1;
     public int totalRounds = 5;
 
-    public float waitingTime = 1f; //准备阶段（默认10秒）
-    public float roundTime = 1f;   //猜测阶段（默认15秒）
+    public float waitingTime = 2f; //准备阶段（默认10秒）
+    public float roundTime = 2f;   //猜测阶段（默认15秒）
     public float revealTime = 10f;  //揭晓阶段（默认10秒）
 
     [UdonSynced]
@@ -134,6 +231,12 @@ public class GameManager : UdonSharpBehaviour
 
         if (players.Length < minPlayers) return; // 玩家数量不足
 
+        // 初始化 PinDataManager
+        if (pinDataManager != null)
+        {
+            pinDataManager.InitializeRounds(totalRounds);
+        }
+
         // 重置分数 对局重新开始
         gameStarted = true; 
         currentRound = 0;
@@ -182,105 +285,39 @@ public class GameManager : UdonSharpBehaviour
 
     private void StartGuessingPhase()
     {
+        if (!Networking.IsOwner(gameObject)) return;
 
-        currentImageIndex = currentRound;  // 切换到新回合的图片
-
+        // TODO: 之后可以用更加先进的算法来选择图片
+        currentImageIndex = UnityEngine.Random.Range(0, imageUrls.Length);
         Debug.Log($"[GameManager] 开始第 {currentRound} 轮，加载图片 {currentImageIndex}");
+        RequestSerialization();
 
-        LoadRoundImage(currentImageIndex); // 切换新图片
 
+        //LoadRoundImage(currentImageIndex); // 切换新图片
+
+        //// 然后触发所有客户端加载图片
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(NetworkLoadPanorama));
+
+        // 等待一小段时间后再触发图片加载
+        //SendCustomEventDelayedSeconds(nameof(NetworkLoadPanorama), 0.5f);
 
         countdownPhase = 2;
         countdownTimer = roundTime; //设置猜测时间
         waitingText.text = $"猜测时间！{roundTime} 秒";
 
-        RequestSerialization();
+        
     }
-
-    //private void RevealAnswer()
-    //{
-    //    Vector2 answerPosition = locationData.GetLocationLatLong(currentRound);
-    //    Debug.Log($"Revealing answer for round {currentRound + 1}: {answerPosition}");
-
-    //    if (answerPinPrefab == null || worldMapRectTransform == null || mapTableTransform == null)
-    //    {
-    //        Debug.LogError("Required references are missing! Please check inspector.");
-    //        return;
-    //    }
-
-    //    // 获取地图在世界空间中的位置
-    //    Vector3[] corners = new Vector3[4];
-    //    worldMapRectTransform.GetWorldCorners(corners);
-
-    //    // 计算地图的实际大小和中心点
-    //    Vector3 bottomLeft = corners[0];
-    //    Vector3 topRight = corners[2];
-    //    Vector3 mapSize = topRight - bottomLeft;
-    //    Vector3 mapCenter = (bottomLeft + topRight) * 0.5f;
-
-    //    // 实例化答案Pin
-    //    if (anwserPinInstance == null)
-    //    {
-    //        anwserPinInstance = VRCInstantiate(answerPinPrefab);
-    //        if (anwserPinInstance == null)
-    //        {
-    //            Debug.LogError("Answer pin instantiation failed!");
-    //            return;
-    //        }
-
-    //        // 将Pin放在MapArea下
-    //        anwserPinInstance.transform.SetParent(mapTableTransform.parent, false);
-
-    //        // 根据地图大小计算Pin的缩放
-    //        float mapDiagonal = mapSize.magnitude;
-    //        float scaleFactor = mapDiagonal * 0.01f; // 地图对角线长度的1%
-    //        anwserPinInstance.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
-
-    //        // 禁用物理组件
-    //        Rigidbody rb = anwserPinInstance.GetComponent<Rigidbody>();
-    //        if (rb != null)
-    //        {
-    //            rb.isKinematic = true;
-    //            rb.useGravity = false;
-    //        }
-    //    }
-
-    //    // 将经纬度转换为UI坐标
-    //    Vector2 normalizedPos = latLongMapper.LatLongToUICoords(answerPosition);
-
-    //    // 将UI坐标归一化到0-1范围
-    //    normalizedPos.x = (normalizedPos.x + worldMapRectTransform.rect.width * 0.5f) / worldMapRectTransform.rect.width;
-    //    normalizedPos.y = (normalizedPos.y + worldMapRectTransform.rect.height * 0.5f) / worldMapRectTransform.rect.height;
-
-    //    // 计算Pin在世界空间中的位置
-    //    Vector3 worldPos = bottomLeft + new Vector3(
-    //        mapSize.x * normalizedPos.x,
-    //        0.4f, // Pin高度，可以调整这个值
-    //        mapSize.z * normalizedPos.y
-    //    );
-
-    //    // 设置Pin的位置和旋转
-    //    anwserPinInstance.transform.position = worldPos;
-    //    anwserPinInstance.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
-
-    //    // 确保Pin可见
-    //    anwserPinInstance.SetActive(true);
-
-    //    Debug.Log($"Pin placed at world position: {worldPos}");
-    //    isShowingResults = true;
-
-    //    UpdateResultsUI(answerPosition);
-
-    //    countdownPhase = 3;
-    //    countdownTimer = revealTime;
-    //    waitingText.text = $"答案揭晓！{revealTime} 秒";
-
-    //    RequestSerialization();
-    //}
 
     private void RevealAnswer()
     {
+      
         if (!Networking.IsOwner(gameObject)) return;
+
+        // 在显示答案之前，保存当前回合的所有玩家答案
+        pinDataManager.SaveRoundAnswers(currentRound);
+
+       
+
 
         // 设置倒计时和阶段
         countdownPhase = 3;
@@ -288,16 +325,37 @@ public class GameManager : UdonSharpBehaviour
         RequestSerialization();
 
         // 触发所有客户端更新Pin
-        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateAnswerPinAll));
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateAnswerPinAll)); 
+        // 揭晓答案时，显示所有玩家的Pin
+        // 显示所有玩家的Pin
+        pinDataManager.SetShowAllPins(true);
+        // 在揭示阶段结束时隐藏其他玩家的Pin
+        //SendCustomEventDelayedSeconds(nameof(HideOtherPins), revealTime);
     }
+
+    public void HideOtherPins()
+    {
+        if (!Networking.IsOwner(gameObject)) return;
+        pinDataManager.SetShowAllPins(false);
+    }
+    //private void LoadRoundImage(int roundIndex)
+    //{
+    //    if (roundIndex >= 0 && roundIndex < imageUrls.Length)
+    //    {
+    //        currentImageIndex = roundIndex;
+    //        RequestSerialization();
+    //        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(NetworkLoadPanorama));
+    //    }
+    //}
 
     public void UpdateAnswerPinAll()
 {
-    // 获取当前回合的正确位置
-    Vector2 answerPosition = locationData.GetLocationLatLong(currentRound);
-    
-    // 计算世界空间位置
-    Vector3[] corners = new Vector3[4];
+
+
+    Vector2 answerPosition = locationData.GetLocationLatLong(currentImageIndex); // currentImageIndex是当前回合的图片索引
+
+        // 计算世界空间位置
+        Vector3[] corners = new Vector3[4];
     worldMapRectTransform.GetWorldCorners(corners);
     Vector3 bottomLeft = corners[0];
     Vector3 topRight = corners[2];
@@ -344,7 +402,7 @@ public class GameManager : UdonSharpBehaviour
 
     private void StartNewRound()
     {
-        //if (!Networking.IsOwner(gameObject)) return; // 只有房主可以开始新回合
+        if (!Networking.IsOwner(gameObject)) return; // 只有房主可以开始新回合
 
         if (currentRound >= totalRounds)
         {
@@ -354,7 +412,9 @@ public class GameManager : UdonSharpBehaviour
 
         // 进入新回合
         isRoundActive = true;
-        currentRound++;  // 轮次增加
+
+        currentRound++; // 更新回合数
+
 
         if (currentRound == 0) // 只有第一轮有准备时间
         {
@@ -381,37 +441,27 @@ public class GameManager : UdonSharpBehaviour
             waitingText.text = $"猜测时间！{Mathf.CeilToInt(roundTime)} 秒";
         }
 
-        //currentImageIndex = currentRound;  // 切换到新回合的图片
-        //RequestSerialization();
-        //SendCustomNetworkEvent(NetworkEventTarget.All, nameof(NetworkLoadPanorama));
-
-        //Debug.Log($"[GameManager] 开始第 {currentRound} 轮，加载图片 {currentImageIndex}");
-
+        // 为新回合加载新图片
+        currentImageIndex = UnityEngine.Random.Range(0, imageUrls.Length);
+        Debug.Log($"[GameManager] 开始第 {currentRound} 轮，加载图片 {currentImageIndex}");
+        RequestSerialization();
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(NetworkLoadPanorama));
     }
 
 
-    private void LoadRoundImage(int roundIndex)
-    {
-        if (roundIndex >= 0 && roundIndex < imageUrls.Length)
-        {
-            currentImageIndex = roundIndex;
-            RequestSerialization();
-            SendCustomNetworkEvent(NetworkEventTarget.All, nameof(NetworkLoadPanorama));
-            Debug.Log($"Loading image {currentImageIndex}");
-        }
-    }
+ 
 
-    private void ShowRoundResults(Vector2 targetPos)
-    {
-        Debug.Log($"Showing results for round {currentRound + 1}");
-        isShowingResults = true;
+    //private void ShowRoundResults(Vector2 targetPos)
+    //{
+    //    Debug.Log($"Showing results for round {currentRound + 1}");
+    //    isShowingResults = true;
 
-        Vector2 worldPos = latLongMapper.LatLongToUICoords(targetPos);
-        answerPinPrefab.transform.localPosition = new Vector3(worldPos.x, 0, worldPos.y);
-        answerPinPrefab.SetActive(true); // 显示答案
-        UpdateResultsUI(targetPos); //更新结果UI
+    //    Vector2 worldPos = latLongMapper.LatLongToUICoords(targetPos);
+    //    answerPinPrefab.transform.localPosition = new Vector3(worldPos.x, 0, worldPos.y);
+    //    answerPinPrefab.SetActive(true); // 显示答案
+    //    UpdateResultsUI(targetPos); //更新结果UI
 
-    }
+    //}
 
     private void UpdateResultsUI(Vector2 targetPos)
     {
@@ -467,30 +517,6 @@ public class GameManager : UdonSharpBehaviour
         Debug.LogError($"Failed to load image: {result.Error}");
     }
 
-
-
-   
-
-    public void StartNextRound()
-    {
-        isShowingResults = false;
-
-        //for (int i = 0; i < playerPins.Length; i++)
-        //{
-        //    if (playerPins[i] != null)
-        //    {
-        //        PinController pinController = playerPins[i].GetComponent<PinController>();
-        //        if (pinController != null)
-        //        {
-        //            //pinController.HideResult(); 
-        //        }
-        //    }
-        //}
-
-        currentRound++;
-        StartNewRound();
-    }
-
     private void EndGame()
     {
         gameStarted = false;
@@ -498,10 +524,12 @@ public class GameManager : UdonSharpBehaviour
 
         if (waitingText != null)
         {
-            waitingText.text = "";
+            waitingText.text = "Game Over!";
         }
 
-        ShowFinalScores();
+        // 计算并显示最终得分
+        pinDataManager.CalculateFinalScores(this);
+
         RequestSerialization();
     }
 
@@ -525,18 +553,6 @@ public class GameManager : UdonSharpBehaviour
         }
     }
 
-    private void ShowFinalScores()
-    {
-        if (scoreText == null) return;
-
-        string scoreBoard = "Game Over!\nFinal Scores:\n";
-        float[] sortedScores = new float[MAX_PLAYERS];
-        int[] playerIds = new int[MAX_PLAYERS];
-        int playerCount = 0;
-
-
-        scoreText.text = scoreBoard;
-    }
 
     public void UpdateStartButtonState()
     {
@@ -604,7 +620,19 @@ public class GameManager : UdonSharpBehaviour
 
     public override void OnDeserialization() 
     {
-       
+        Debug.Log($"[GameManager] OnDeserialization - currentImageIndex: {currentImageIndex}, Phase: {countdownPhase}");
 
+        // 如果图片索引有效且发生了变化，重新加载图片
+        if (currentImageIndex >= 0 && currentImageIndex < imageUrls.Length)
+        {
+            NetworkLoadPanorama();
+        }
+
+    }
+
+    // 提供给 PinDataManager 用于获取每轮正确答案的方法
+    public Vector2 GetRoundAnswer(int roundIndex)
+    {
+        return locationData.GetLocationLatLong(roundIndex);
     }
 }

@@ -31,25 +31,71 @@ public class LocationRoundData : UdonSharpBehaviour
     }
 
     // 获取位置信息
+    //public Vector2 GetLocationLatLong(int index)
+    //{
+    //    if (locationDataList != null && index < locationDataList.Count)
+    //    {
+    //        var locationData = locationDataList[index].DataDictionary;
+    //        float latitude = 0f, longitude = 0f;
+
+    //        if (locationData.TryGetValue("latitude", out DataToken latValue))
+    //        {
+    //            latitude = (float)latValue.Double;
+    //        }
+    //        if (locationData.TryGetValue("longitude", out DataToken longValue))
+    //        {
+    //            longitude = (float)longValue.Double;
+    //        }
+
+    //        return new Vector2(latitude, longitude);
+    //    }
+    //    return Vector2.zero;
+    //}
+
     public Vector2 GetLocationLatLong(int index)
     {
-        if (locationDataList != null && index < locationDataList.Count)
+        if (locationDataList == null)
         {
-            var locationData = locationDataList[index].DataDictionary;
-            float latitude = 0f, longitude = 0f;
+            Debug.LogError($"[LocationRoundData] locationDataList is null!");
+            return Vector2.zero;
+        }
 
-            if (locationData.TryGetValue("latitude", out DataToken latValue))
+        // 边界检查
+        if (index < 0 || index >= locationDataList.Count)
+        {
+            Debug.LogError($"[LocationRoundData] Index {index} out of range! Count: {locationDataList.Count}");
+            return Vector2.zero;
+        }
+
+        // 获取位置数据
+        if (!locationDataList.TryGetValue(index, TokenType.DataDictionary, out DataToken dataToken))
+        {
+            Debug.LogError($"[LocationRoundData] Failed to get DataDictionary at index {index}");
+            return Vector2.zero;
+        }
+
+        var locationData = dataToken.DataDictionary;
+        float latitude = 0f, longitude = 0f;
+
+        // 获取经纬度
+        if (locationData.TryGetValue("latitude", out DataToken latValue))
+        {
+            if (latValue.TokenType == TokenType.Float || latValue.TokenType == TokenType.Double)
             {
                 latitude = (float)latValue.Double;
             }
-            if (locationData.TryGetValue("longitude", out DataToken longValue))
+        }
+
+        if (locationData.TryGetValue("longitude", out DataToken longValue))
+        {
+            if (longValue.TokenType == TokenType.Float || longValue.TokenType == TokenType.Double)
             {
                 longitude = (float)longValue.Double;
             }
-
-            return new Vector2(latitude, longitude);
         }
-        return Vector2.zero;
+
+        Debug.Log($"[LocationRoundData] Got location at index {index}: ({latitude}, {longitude})");
+        return new Vector2(latitude, longitude);
     }
 
     // 获取地点名称
