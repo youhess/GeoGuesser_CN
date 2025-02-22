@@ -325,10 +325,11 @@ public class GameManager : UdonSharpBehaviour
         RequestSerialization();
 
         // 触发所有客户端更新Pin
-        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateAnswerPinAll)); 
-        // 揭晓答案时，显示所有玩家的Pin
-        // 显示所有玩家的Pin
-        pinDataManager.SetShowAllPins(true);
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateAnswerPinAll));
+
+
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(pinDataManager.SetShowAllPins));
+        //pinDataManager.SetShowAllPins(true);
         // 在揭示阶段结束时隐藏其他玩家的Pin
         //SendCustomEventDelayedSeconds(nameof(HideOtherPins), revealTime);
     }
@@ -336,7 +337,7 @@ public class GameManager : UdonSharpBehaviour
     public void HideOtherPins()
     {
         if (!Networking.IsOwner(gameObject)) return;
-        pinDataManager.SetShowAllPins(false);
+        //pinDataManager.SetShowAllPins(false);
     }
     //private void LoadRoundImage(int roundIndex)
     //{
@@ -347,6 +348,7 @@ public class GameManager : UdonSharpBehaviour
     //        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(NetworkLoadPanorama));
     //    }
     //}
+
 
     public void UpdateAnswerPinAll()
 {

@@ -27,7 +27,7 @@ public class PinDataManager : UdonSharpBehaviour
     // 显示最终得分
     public TextMeshProUGUI finalScoresText;
 
-    [UdonSynced]
+    //[UdonSynced]
     private bool showAllPins = false;  // 控制是否显示所有Pin的状态
 
     // 改为使用 ObjectAssigner 而不是 ObjectPool
@@ -52,12 +52,25 @@ public class PinDataManager : UdonSharpBehaviour
         Debug.Log("[PinDataManager] 初始化完成");
 
 
-        // 添加检查
-        if (objectAssigner == null)
-        {
-            Debug.LogError("[PinDataManager] CyanPlayerObjectAssigner 未设置！");
-            return;
-        }
+        //if (objectAssigner == null)
+        //{
+        //    Debug.Log($"[PinDataManager] 开始查找 CyanPlayerObjectAssigner");
+
+        //    // 在子级层次结构中查找 CyanPlayerObjectAssigner
+        //    objectAssigner = GetComponentInChildren<CyanPlayerObjectAssigner>();
+
+        //    if (objectAssigner != null)
+        //    {
+        //        Debug.Log($"[PinDataManager] 成功找到 objectAssigner: {objectAssigner.gameObject.name}");
+        //    }
+        //    else
+        //    {
+        //        Debug.LogError($"[PinDataManager] 无法找到 CyanPlayerObjectAssigner，请检查子级层次结构！");
+        //        return;
+        //    }
+        //}
+
+        Debug.Log("[PinDataManager] 初始化完成");
     }
 
     // 由GameManager调用的初始化方法
@@ -70,40 +83,40 @@ public class PinDataManager : UdonSharpBehaviour
     //}
 
     // 新增：设置所有Pin可见性的方法
-    public void SetShowAllPins(bool show)
+    public void SetShowAllPins()
     {
-        if (!Networking.IsOwner(gameObject)) return;
-        if (showAllPins != show)  // 只在值真正改变时才更新
-        {
-            Debug.Log($"[PinDataManager] 设置所有Pin可见性: {show}");
-            showAllPins = show;
-            // 立即在本地执行可见性更新
-            RequestSerialization();  // 会触发其他客户端的 OnDeserialization
-            UpdatePinVisibility();
-            SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdatePinVisibility));
-        }
+            //if (!Networking.IsOwner(gameObject)) return;
+  
+            Debug.Log($"[PinDataManager] 设置所有Pin可见");
+            showAllPins = true;
+        // 立即在本地执行可见性更新
+        //RequestSerialization();  // 会触发其他客户端的 OnDeserialization
+        // 应该每一个客户端都调用一次
+        UpdatePinVisibility();
+            //SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdatePinVisibility)); // 有可能要在所有客户端执行，onDeserialization不一定会触发
+        
     }
+
 
     public void InitializeRounds(int rounds)
     {
-        if (rounds <= 0)
-        {
-            Debug.LogError($"[PinDataManager] Invalid rounds count: {rounds}");
-            return;
-        }
+        Debug.Log($"[PinDataManager] 开始初始化回合数: {rounds}");
 
         totalRounds = rounds;
         roundAnswers = new DataList[totalRounds];
         serializedRoundAnswers = new string[totalRounds];
 
-        // 初始化每个元素
+        // 确保每个元素都被初始化
         for (int i = 0; i < totalRounds; i++)
         {
             roundAnswers[i] = new DataList();
             serializedRoundAnswers[i] = "";
+            Debug.Log($"[PinDataManager] 初始化回合 {i}");
         }
 
-        Debug.Log($"[PinDataManager] 初始化 {totalRounds} 回合的数据存储");
+        // 同步修改，确保其他客户端也收到更新
+        //RequestSerialization();
+
     }
 
     //public void UpdateDataListPlayerText()
@@ -351,11 +364,24 @@ public class PinDataManager : UdonSharpBehaviour
 
     private void UpdatePinVisibility()
     {
+
+        if (!Networking.IsOwner(objectAssigner.gameObject))
+        {
+            Debug.LogWarning("[PinDataManager] 当前玩家不是 objectAssigner 的所有者，可能无法正确获取对象");
+        }
+        else
+        {
+            Debug.Log("[PinDataManager] 当前玩家是 objectAssigner 的所有者");
+        }
+
+
+
         // 获取所有活动的池对象
         Component[] activePoolObjects = objectAssigner._GetActivePoolObjects();
         // 显示Pool中的所有对象
         // 添加日志显示长度
         Debug.Log($"[PinDataManager] 活动池对象数量: {activePoolObjects.Length}");
+
         if (activePoolObjects == null)
         {
             Debug.LogError("[PinDataManager] 无法获取活动的池对象！");
@@ -410,7 +436,22 @@ public class PinDataManager : UdonSharpBehaviour
     // 在数据反序列化前调用
     public override void OnDeserialization()
     {
-        Debug.Log("反序列化前调用");
+
+        Debug.Log("OnDeserialization called");
+
+        // 如果数组还没有初始化，则进行初始化
+        if (roundAnswers == null || serializedRoundAnswers == null)
+        {
+            Debug.Log("Initializing roundAnswers and serializedRoundAnswers arrays");
+            roundAnswers = new DataList[totalRounds];
+            serializedRoundAnswers = new string[totalRounds];
+            for (int i = 0; i < totalRounds; i++)
+            {
+                roundAnswers[i] = new DataList();
+                serializedRoundAnswers[i] = "";
+            }
+        }
+
         if (!string.IsNullOrEmpty(serializedData))
         {
             if (VRCJson.TryDeserializeFromJson(serializedData, out DataToken dataToken) && dataToken.TokenType == TokenType.DataList)
@@ -426,47 +467,71 @@ public class PinDataManager : UdonSharpBehaviour
         // 这里更新 UI 确保所有玩家都能看到最新的信息
         dataListPlayerText.text = playerInfo;
 
-        // 反序列化每轮的数据
+        //// 反序列化每轮的数据
+        //for (int i = 0; i < totalRounds; i++)
+        //{
+        //    if (!string.IsNullOrEmpty(serializedRoundAnswers[i]))
+        //    {
+        //        if (VRCJson.TryDeserializeFromJson(serializedRoundAnswers[i], out DataToken dataToken) &&
+        //            dataToken.TokenType == TokenType.DataList)
+        //        {
+        //            roundAnswers[i] = dataToken.DataList;
+        //        }
+        //    }
+        //}
+
+        // 反序列化每一回合的数据
         for (int i = 0; i < totalRounds; i++)
         {
             if (!string.IsNullOrEmpty(serializedRoundAnswers[i]))
             {
-                if (VRCJson.TryDeserializeFromJson(serializedRoundAnswers[i], out DataToken dataToken) &&
-                    dataToken.TokenType == TokenType.DataList)
+                if (VRCJson.TryDeserializeFromJson(serializedRoundAnswers[i], out DataToken dataToken))
                 {
-                    roundAnswers[i] = dataToken.DataList;
+                    if (dataToken.TokenType == TokenType.DataList)
+                    {
+                        roundAnswers[i] = dataToken.DataList;
+                        Debug.Log($"[PinDataManager] Successfully deserialized round {i} data");
+                    }
+                    else
+                    {
+                        Debug.LogError($"[PinDataManager] Round {i} data type error: {dataToken.TokenType}");
+                    }
+                }
+                else
+                {
+                    Debug.LogError($"[PinDataManager] Failed to deserialize round {i} data");
                 }
             }
         }
 
-        // 使用相同的代码更新存储显示
-        StringBuilder storageText = new StringBuilder("Game Round Data:\n");
-        for (int i = 0; i < totalRounds; i++)
-        {
-            storageText.AppendLine($"Round {i + 1}:");
-            if (roundAnswers[i] != null && roundAnswers[i].Count > 0)
-            {
-                for (int j = 0; j < roundAnswers[i].Count; j++)
-                {
-                    if (roundAnswers[i].TryGetValue(j, TokenType.DataDictionary, out DataToken dataToken))
-                    {
-                        DataDictionary playerAnswer = dataToken.DataDictionary;
-                        if (playerAnswer.TryGetValue("id", TokenType.Int, out DataToken idToken) &&
-                            playerAnswer.TryGetValue("longitude", TokenType.Float, out DataToken longToken) &&
-                            playerAnswer.TryGetValue("latitude", TokenType.Float, out DataToken latToken))
-                        {
-                            storageText.AppendLine($"Player {idToken.Int}: Lat {latToken.Float:F2}, Long {longToken.Float:F2}");
-                        }
-                    }
-                }
-            }
-            else
-            {
-                storageText.AppendLine("No data");
-            }
-            storageText.AppendLine();
-        }
-        gameDataStoreageText.text = storageText.ToString();
+        //// 使用相同的代码更新存储显示
+        //StringBuilder storageText = new StringBuilder("Game Round Data:\n");
+        //for (int i = 0; i < totalRounds; i++)
+        //{
+        //    storageText.AppendLine($"Round {i + 1}:");
+        //    if (roundAnswers[i] != null && roundAnswers[i].Count > 0)
+        //    {
+        //        for (int j = 0; j < roundAnswers[i].Count; j++)
+        //        {
+        //            if (roundAnswers[i].TryGetValue(j, TokenType.DataDictionary, out DataToken dataToken))
+        //            {
+        //                DataDictionary playerAnswer = dataToken.DataDictionary;
+        //                if (playerAnswer.TryGetValue("id", TokenType.Int, out DataToken idToken) &&
+        //                    playerAnswer.TryGetValue("longitude", TokenType.Float, out DataToken longToken) &&
+        //                    playerAnswer.TryGetValue("latitude", TokenType.Float, out DataToken latToken))
+        //                {
+        //                    storageText.AppendLine($"Player {idToken.Int}: Lat {latToken.Float:F2}, Long {longToken.Float:F2}");
+        //                }
+        //            }
+        //        }
+        //    }
+        //    else
+        //    {
+        //        storageText.AppendLine("No data");
+        //    }
+        //    storageText.AppendLine();
+        //}
+        //gameDataStoreageText.text = storageText.ToString();
 
         //Debug.Log("UpdatePinVisibility被调用啦");
         //// 更新Pin可见性
