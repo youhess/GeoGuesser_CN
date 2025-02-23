@@ -388,12 +388,13 @@ public class GameManager : UdonSharpBehaviour
     {
         if (!Networking.IsOwner(gameObject)) return; // 只有房主可以开始新回合
 
-        if (currentRound >= totalRounds)
+        if (currentRound >= totalRounds - 1)
         {
             EndGame();
-            return;
+            return;                 
         }
 
+        // 隐藏除了自己的pin的所有pin
         SendCustomNetworkEvent(NetworkEventTarget.All, nameof(pinDataManager.SetHideOtherPins));
 
         // 进入新回合
@@ -507,15 +508,27 @@ public class GameManager : UdonSharpBehaviour
         gameStarted = false;
         isRoundActive = false;
 
-        if (waitingText != null)
-        {
-            waitingText.text = "Game Over!";
-        }
+        //if (waitingText != null)
+        //{
+        //    waitingText.text = "Game Over!";
+        //}
+
+        // Send network event to all clients to show game over
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(ShowGameOver));
 
         // 计算并显示最终得分
         pinDataManager.CalculateFinalScores(this);
 
         RequestSerialization();
+    }
+
+    public void ShowGameOver()
+    {
+        Debug.Log("Game Over!");
+        if (waitingText != null)
+        {
+            waitingText.text = "Game Over!";
+        }
     }
 
     private void ResetScores()
