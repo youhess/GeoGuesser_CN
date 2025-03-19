@@ -23,10 +23,6 @@ public class PinController : UdonSharpBehaviour
     [UdonSynced]
     private bool canPickup = false; // 只有所有者才能拾取
 
-
-
-
-
     [Header("Visual Settings")]
     public float hoverHeight = 0.1f;
 
@@ -36,6 +32,18 @@ public class PinController : UdonSharpBehaviour
     private Rigidbody _rigidbody;
 
     public PinDataManager pinDataManager;
+
+    // 在 PinController.cs 类中添加以下变量
+    [Header("Line Renderer Settings")]
+    public bool showLineToAnswer = false; // 是否显示到答案的连线
+    public Material lineMaterial; // 线条材质
+    public Color lineColor = Color.red; // 线条颜色
+    public float lineWidth = 0.5f; // 线条宽度
+
+    private LineRenderer lineRenderer; // 连线渲染器
+    private GameObject answerPinObject; // 答案Pin的引用
+
+    private bool isPlacedOnMap = false;
 
 
     private void Start()
@@ -49,6 +57,10 @@ public class PinController : UdonSharpBehaviour
             {
                 Debug.LogError("[PinController] 无法找到 GameManager，确保 Prefab 在 GameManager 之下！");
             }
+            else
+            {
+                Debug.Log($"[PinController] 成功找到 GameManager: {gameManager.name}");
+            }
         }
 
         // **修正 LatLongMapper 查找方式**
@@ -59,6 +71,24 @@ public class PinController : UdonSharpBehaviour
             {
                 Debug.LogError("[PinController] 无法找到 LatLongMapper，请检查场景层级结构！");
             }
+            else
+            {
+                Debug.Log($"[PinController] 成功找到 LatLongMapper: {latLongMapper.name}");
+            }
+        }
+
+        if (lineRenderer == null)
+        {
+            lineRenderer = GetComponent<LineRenderer>();
+            if (lineRenderer == null)
+            {
+                Debug.LogWarning("[PinController] 未找到 LineRenderer 组件，正在尝试添加...");
+                // 在 UdonSharp 中不能直接添加组件，所以这里只能输出警告
+            }
+            else
+            {
+                Debug.Log("[PinController] 成功找到 LineRenderer 组件！");
+            }
         }
 
         // 自动获取 PinDataManager
@@ -68,6 +98,10 @@ public class PinController : UdonSharpBehaviour
             if (pinDataManager == null)
             {
                 Debug.LogError("[PinController] 无法找到 PinDataManager，确保它存在于 GameManager 或同级对象中！");
+            }
+            else
+            {
+                Debug.Log($"[PinController] 成功找到 PinDataManager: {pinDataManager.name}");
             }
         }
 
@@ -141,6 +175,34 @@ public class PinController : UdonSharpBehaviour
 
         UpdateOwnerName();
         _originalPosition = transform.position;
+
+        // 获取或初始化LineRenderer
+        if (lineRenderer == null)
+        {
+            lineRenderer = GetComponent<LineRenderer>();
+            Debug.LogWarning("[PinController] 未设置LineRenderer，请在Inspector中手动设置。");
+        }
+
+        if (lineRenderer != null)
+        {
+            // 初始化LineRenderer设置
+            lineRenderer.positionCount = 2; // 起点和终点
+            lineRenderer.startWidth = lineWidth;
+            lineRenderer.endWidth = lineWidth;
+
+            // 设置材质和颜色
+            if (lineMaterial != null)
+            {
+                lineRenderer.material = lineMaterial;
+            }
+
+            // 设置颜色
+            lineRenderer.startColor = lineColor;
+            lineRenderer.endColor = lineColor;
+
+            // 默认不显示
+            lineRenderer.enabled = false;
+        }
     }
 
     private void Update()
@@ -178,6 +240,9 @@ public class PinController : UdonSharpBehaviour
 
         // 保持垂直
         transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
+
+        // 更新连线位置
+        UpdateLinePosition();
 
     }
 
@@ -264,6 +329,78 @@ public class PinController : UdonSharpBehaviour
         }
     }
 
+    // 在 PinController.cs 中修改 SetAnswerPin 方法
+    public void SetAnswerPin(GameObject answerPin)
+    {
+        // 添加详细的日志
+        Debug.Log($"[Pin] SetAnswerPin 被调用 - answerPin: {(answerPin != null ? answerPin.name : "null")}");
+
+        answerPinObject = answerPin;
+
+        // 验证设置是否成功
+        Debug.Log($"[Pin] 设置后的 answerPinObject: {(answerPinObject != null ? answerPinObject.name : "null")}");
+    }
+
+    // 修改 ShowLineToAnswer 方法，让它直接更新连线位置
+    public void ShowLineToAnswer(bool show)
+    {
+        // 这个确实激活的
+        Debug.Log($"[Pin] ShowLineToAnswer: {show}");
+        showLineToAnswer = show;
+
+        // 先检查LineRenderer是否存在
+        if (lineRenderer == null)
+        {
+            Debug.LogWarning("[Pin] lineRenderer 为 null，无法显示连线");
+            return;
+        }
+
+        // 检查answerPinObject是否为null
+        if (answerPinObject == null)
+        {
+            Debug.LogWarning("[Pin] answerPinObject 为 null，无法显示连线");
+            // 确保LineRenderer被禁用
+            lineRenderer.enabled = false;
+            return;
+        }
+
+        // 只有在pin实际与地图有碰撞时才显示连线
+        if (show && isPlacedOnMap)
+        {
+            // 只在状态变化时更新一次位置
+            lineRenderer.enabled = true;
+            Debug.Log($"[Pin] 更新连线位置");
+            Debug.Log($"[Pin] Pin位置: {transform.position}");
+            Debug.Log($"[Pin] 答案Pin位置: {answerPinObject.transform.position}");
+            UpdateLinePosition();
+            //lineRenderer.SetPosition(0, transform.position);
+            //lineRenderer.SetPosition(1, answerPinObject.transform.position);
+        }
+        else
+        {
+            lineRenderer.enabled = false;
+        }
+    }
+
+    // 添加一个方法，可以在需要时手动更新连线位置（比如当Pin移动时）
+    public void UpdateLinePosition()
+    {
+
+        if (!showLineToAnswer || lineRenderer == null || answerPinObject == null) return;
+
+        // 计算Pin底部位置（假设Y轴向上）
+        // 获取Pin的高度（可以是Mesh的高度或者预设的值）
+        float pinHeight = 0.6f; // 根据你的Pin实际高度调整
+        Vector3 pinBottomPosition = transform.position - new Vector3(0, pinHeight / 2, 0);
+
+        // 同理，计算答案Pin的底部位置
+        Vector3 answerPinBottomPosition = answerPinObject.transform.position - new Vector3(0, pinHeight / 2, 0);
+
+        // 设置线条位置
+        lineRenderer.SetPosition(0, pinBottomPosition);
+        lineRenderer.SetPosition(1, answerPinBottomPosition);
+    }
+
     private void HandlePinPlacement()
     {
         // 计算放置位置
@@ -276,15 +413,19 @@ public class PinController : UdonSharpBehaviour
             if (latLongMapper != null && _owner != null && gameManager != null)
             {
                 Vector2 latLong = latLongMapper.UICoordsToLatLong(localPoint);
+                isPlacedOnMap = true; // 标记为已放置
                 UpdateCoordinateText(latLong);
                 //gameManager.RecordPinPosition(_owner.playerId, latLong);
+               
             }
         }
         else
         {
             // 如果不在地图范围内，重置到原始位置
-            Debug.Log("不在地图范围内，重置到原始位置");
+            Debug.Log("不在地图范围内，重置到原始位置"); 
+            isPlacedOnMap = false; // 标记为未放置
             ResetPosition();
+           
         }
     }
 
@@ -295,6 +436,25 @@ public class PinController : UdonSharpBehaviour
         {
             Debug.Log($"与MapTable碰撞啦！！！");
             HandlePinPlacement();　// 处理放置
+        }
+        else {
+            // 如果碰到非地图物体，将标记设为未放置状态
+            Debug.Log($"与非地图物体 {collision.gameObject.name} 碰撞，重置放置状态！");
+            isPlacedOnMap = false;
+
+            // 如果需要，可以更新UI和数据
+            if (coordinateText != null)
+            {
+                coordinateText.text = "Not Placed";
+            }
+
+            // 通知PinDataManager状态更新
+            if (pinDataManager != null && _owner != null)
+            {
+                // 使用当前位置的经纬度，但标记为未放置
+                Vector2 currentPosition = new Vector2(0, 0); // 或者使用上次有效的位置
+                pinDataManager.UpdatePlayerPinData(_owner.playerId, currentPosition, false);
+            }
         }
 
     }
@@ -321,7 +481,7 @@ public class PinController : UdonSharpBehaviour
         {
             coordinateText.text = $"Lat: {latLong.x:F2}\nLong: {latLong.y:F2}";
             // 然后让传下当前的经纬度
-            pinDataManager.UpdatePlayerPinData(_owner.playerId, latLong);
+            pinDataManager.UpdatePlayerPinData(_owner.playerId, latLong, isPlacedOnMap);
 
         }
     }
@@ -330,11 +490,27 @@ public class PinController : UdonSharpBehaviour
     {
         transform.position = _originalPosition;
         transform.rotation = Quaternion.identity;
-        
+
         if (_rigidbody != null)
         {
             _rigidbody.velocity = Vector3.zero;
             _rigidbody.angularVelocity = Vector3.zero;
+        }
+
+        // 重置放置状态
+        isPlacedOnMap = false;
+
+        // 更新UI和数据
+        if (coordinateText != null)
+        {
+            coordinateText.text = "Not Placed";
+        }
+
+        // 通知PinDataManager状态更新
+        if (pinDataManager != null && _owner != null)
+        {
+            Vector2 defaultPosition = new Vector2(0, 0);
+            pinDataManager.UpdatePlayerPinData(_owner.playerId, defaultPosition, false);
         }
     }
 
@@ -410,7 +586,7 @@ public class PinController : UdonSharpBehaviour
         }
         else
         {
-            ownername.text = "无效的所有者";
+            ownername.text = "Invalid owner";
             Debug.Log($"对象 '{gameObject.name}' 当前没有有效的所有者。");
         }
     }

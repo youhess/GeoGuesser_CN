@@ -22,10 +22,16 @@ public class PinDataManager : UdonSharpBehaviour
     private DataList[] roundAnswers;
     [UdonSynced] private string[] serializedRoundAnswers; 
     public TextMeshProUGUI gameDataStoreageText;
+
+    [UdonSynced]
     private int totalRounds = 5; // 与 GameManager 保持一致
 
     // 显示最终得分
-    public TextMeshProUGUI finalScoresText;
+    public TextMeshProUGUI roundScoresText;
+
+    // 添加一个用于存储当前轮次得分的字符串
+    [UdonSynced] 
+    private string currentRoundScoresText = "";
 
     //[UdonSynced]
     private bool showAllPins = false;  // 控制是否显示所有Pin的状态
@@ -73,14 +79,6 @@ public class PinDataManager : UdonSharpBehaviour
         Debug.Log("[PinDataManager] 初始化完成");
     }
 
-    // 由GameManager调用的初始化方法
-    //public void InitializeRounds(int rounds)
-    //{
-    //    totalRounds = rounds;
-    //    roundAnswers = new DataList[totalRounds];
-    //    serializedRoundAnswers = new string[totalRounds];
-    //    Debug.Log($"[PinDataManager] 初始化 {totalRounds} 回合的数据存储");
-    //}
 
     // 新增：设置所有Pin可见性的方法
     public void SetShowAllPins()
@@ -138,9 +136,9 @@ public class PinDataManager : UdonSharpBehaviour
 
 
     // 更新玩家的 Pin 经纬度数据 
-    public void UpdatePlayerPinData(int playerId, Vector2 pinCoordinates)
+    public void UpdatePlayerPinData(int playerId, Vector2 pinCoordinates, bool isPlacedOnMap)
     {
-        Debug.Log($"UpdatePlayerPinData: {playerId}, {pinCoordinates}"); // 打印玩家 ID 和经纬度
+        Debug.Log($"UpdatePlayerPinData: {playerId}, {pinCoordinates}, placed: {isPlacedOnMap}");
 
         bool playerFound = false;
 
@@ -157,6 +155,7 @@ public class PinDataManager : UdonSharpBehaviour
                     // 更新经纬度
                     dataPoint.SetValue("longitude", pinCoordinates.x);
                     dataPoint.SetValue("latitude", pinCoordinates.y);
+                    dataPoint.SetValue("isPlaced", isPlacedOnMap);
                     playerFound = true;
                     break;
                 }
@@ -170,6 +169,7 @@ public class PinDataManager : UdonSharpBehaviour
             newDataPoint.SetValue("id", playerId);
             newDataPoint.SetValue("longitude", pinCoordinates.x);
             newDataPoint.SetValue("latitude", pinCoordinates.y);
+            newDataPoint.SetValue("isPlaced", isPlacedOnMap);
             dataList.Add(newDataPoint);
         }
 
@@ -243,6 +243,7 @@ public class PinDataManager : UdonSharpBehaviour
     // 保存当前回合的所有玩家答案
     public void SaveRoundAnswers(int roundIndex)
     {
+        // 只有所有者才能保存数据
         if (!Networking.IsOwner(gameObject)) return;
 
         // 保存当前的 dataList 到对应回合
@@ -254,7 +255,7 @@ public class PinDataManager : UdonSharpBehaviour
             serializedRoundAnswers[roundIndex] = jsonToken.String;
         }
 
-        // 更新 UI 显示
+        // 更新 UI 显示， 这个没有必要在所有客户端都更新，因为只有所有者才能保存数据
         StringBuilder storageText = new StringBuilder("Game Round Data:\n");
         for (int i = 0; i < totalRounds; i++)
         {
@@ -323,8 +324,15 @@ public class PinDataManager : UdonSharpBehaviour
                             int playerId = idToken.Int;
                             Vector2 playerGuess = new Vector2(latToken.Float, longToken.Float);
 
-                            // 计算得分
-                            float score = CalculateScore(correctAnswer, playerGuess);
+                            // 获取放置状态，如果不存在则默认为 false
+                            bool isPlaced = false;
+                            if (playerAnswer.TryGetValue("isPlaced", TokenType.Boolean, out DataToken placedToken))
+                            {
+                                isPlaced = placedToken.Boolean;
+                            }
+
+                            // 计算得分，考虑 pin 是否被放置
+                            float score = CalculateScore(correctAnswer, playerGuess, isPlaced);
 
                             // 累加到玩家总分
                             float currentScore = 0;
@@ -355,16 +363,83 @@ public class PinDataManager : UdonSharpBehaviour
         }
 
         // 更新UI显示
-        finalScoresText.text = finalScores.ToString();
+        roundScoresText.text = finalScores.ToString();
     }
 
-    private float CalculateScore(Vector2 correctAnswer, Vector2 playerGuess)
+    // 计算每一轮所有玩家的得分
+    public void CalculateRoundScores(GameManager gameManager, int roundIndex)
     {
+        StringBuilder roundScores = new StringBuilder($"Round {roundIndex + 1} Scores:\n");
+        // 获取该轮的正确答案
+        Vector2 correctAnswer = gameManager.GetRoundAnswer(roundIndex);
+        // 获取该轮的所有玩家答案
+        if (roundAnswers[roundIndex] != null)
+        {
+            // 计算每个玩家在这轮的得分
+            for (int i = 0; i < roundAnswers[roundIndex].Count; i++)
+            {
+                if (roundAnswers[roundIndex].TryGetValue(i, TokenType.DataDictionary, out DataToken dataToken))
+                {
+                    DataDictionary playerAnswer = dataToken.DataDictionary;
+                    if (playerAnswer.TryGetValue("id", TokenType.Int, out DataToken idToken) &&
+                        playerAnswer.TryGetValue("longitude", TokenType.Float, out DataToken longToken) &&
+                        playerAnswer.TryGetValue("latitude", TokenType.Float, out DataToken latToken))
+                    {
+                        int playerId = idToken.Int;
+                        Vector2 playerGuess = new Vector2(latToken.Float, longToken.Float);
+                        // 获取放置状态，如果不存在则默认为 false
+                        bool isPlaced = false;
+                        if (playerAnswer.TryGetValue("isPlaced", TokenType.Boolean, out DataToken placedToken))
+                        {
+                            isPlaced = placedToken.Boolean;
+                        }
+
+                        // 计算得分时考虑放置状态
+                        float score = CalculateScore(correctAnswer, playerGuess, isPlaced);
+
+                        // 添加到字符串
+                        roundScores.AppendLine($"Player {playerId}: {score:F0}{(!isPlaced ? " (Not placed)" : "")}");
+                    }
+                }
+            }
+        }
+
+        // 保存计算结果到同步变量
+        currentRoundScoresText = roundScores.ToString();
+
+        // 立即更新本地UI
+        UpdateRoundScoresUI();
+
+        // 请求同步，这会触发其他客户端的 OnDeserialization
+        RequestSerialization();
+
+        // 发送网络事件，确保所有客户端都更新 UI
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateRoundScoresUI));
+    }
+
+    // 添加一个 UI 更新方法，可以被网络事件调用
+    public void UpdateRoundScoresUI()
+    {
+        if (roundScoresText != null)
+        {
+            roundScoresText.text = currentRoundScoresText;
+        }
+    }
+
+    private float CalculateScore(Vector2 correctAnswer, Vector2 playerGuess, bool isPlacedOnMap)
+    {
+
+        // 如果Pin未放置在地图上，直接返回0分
+        if (!isPlacedOnMap)
+        {
+            return 0;
+        }
+
         // 计算距离（可以使用简单的欧几里得距离或更复杂的地球表面距离）
         float distance = Vector2.Distance(correctAnswer, playerGuess);
         
-        // 基于距离计算分数（示例：满分5000，距离越远分数越低）
-        float maxScore = 5000f;
+        // 基于距离计算分数（示例：满分100，距离越远分数越低）
+        float maxScore = 100f;
         float maxDistance = 1000f; // 最大距离，超过这个距离得0分
         
         if (distance >= maxDistance) return 0;
@@ -449,8 +524,12 @@ public class PinDataManager : UdonSharpBehaviour
 
         Debug.Log("OnDeserialization called");
 
+        // 更新轮次得分 UI
+        UpdateRoundScoresUI();
+
         // 如果数组还没有初始化，则进行初始化
-        if (roundAnswers == null || serializedRoundAnswers == null)
+        if (roundAnswers == null || serializedRoundAnswers == null ||
+        roundAnswers.Length != totalRounds || serializedRoundAnswers.Length != totalRounds)
         {
             Debug.Log("Initializing roundAnswers and serializedRoundAnswers arrays");
             roundAnswers = new DataList[totalRounds];
@@ -493,7 +572,9 @@ public class PinDataManager : UdonSharpBehaviour
         // 反序列化每一回合的数据
         for (int i = 0; i < totalRounds; i++)
         {
-            if (!string.IsNullOrEmpty(serializedRoundAnswers[i]))
+            Debug.Log($"[PinDataManager] OnDeserialization - 访问索引 {i}，数组长度: {serializedRoundAnswers.Length}, totalRounds: {totalRounds}");
+
+            if (i < serializedRoundAnswers.Length && !string.IsNullOrEmpty(serializedRoundAnswers[i]))
             {
                 if (VRCJson.TryDeserializeFromJson(serializedRoundAnswers[i], out DataToken dataToken))
                 {
@@ -513,37 +594,6 @@ public class PinDataManager : UdonSharpBehaviour
                 }
             }
         }
-
-        //// 使用相同的代码更新存储显示
-        //StringBuilder storageText = new StringBuilder("Game Round Data:\n");
-        //for (int i = 0; i < totalRounds; i++)
-        //{
-        //    storageText.AppendLine($"Round {i + 1}:");
-        //    if (roundAnswers[i] != null && roundAnswers[i].Count > 0)
-        //    {
-        //        for (int j = 0; j < roundAnswers[i].Count; j++)
-        //        {
-        //            if (roundAnswers[i].TryGetValue(j, TokenType.DataDictionary, out DataToken dataToken))
-        //            {
-        //                DataDictionary playerAnswer = dataToken.DataDictionary;
-        //                if (playerAnswer.TryGetValue("id", TokenType.Int, out DataToken idToken) &&
-        //                    playerAnswer.TryGetValue("longitude", TokenType.Float, out DataToken longToken) &&
-        //                    playerAnswer.TryGetValue("latitude", TokenType.Float, out DataToken latToken))
-        //                {
-        //                    storageText.AppendLine($"Player {idToken.Int}: Lat {latToken.Float:F2}, Long {longToken.Float:F2}");
-        //                }
-        //            }
-        //        }
-        //    }
-        //    else
-        //    {
-        //        storageText.AppendLine("No data");
-        //    }
-        //    storageText.AppendLine();
-        //}
-        //gameDataStoreageText.text = storageText.ToString();
-
-        //Debug.Log("UpdatePinVisibility被调用啦");
         //// 更新Pin可见性
         //UpdatePinVisibility();
     }

@@ -11,6 +11,7 @@ using VRC.Udon.Common;
 using VRC.SDK3.Data;
 using BestHTTP.SecureProtocol.Org.BouncyCastle.Ocsp;
 using System;
+using Cyan.PlayerObjectPool;
 
 [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
 public class GameManager : UdonSharpBehaviour
@@ -20,6 +21,8 @@ public class GameManager : UdonSharpBehaviour
     private GameObject currentPanorama;
     public GameObject answerPinPrefab; // 这是 Prefab，不是直接的 GameObject
     private GameObject anwserPinInstance; // 存储实例化的对象
+     // 改为使用 ObjectAssigner 而不是 ObjectPool
+    public CyanPlayerObjectAssigner objectAssigner;
 
 
     //[Header("Pin System")]
@@ -30,104 +33,184 @@ public class GameManager : UdonSharpBehaviour
     //[SerializeField]
     //public VRCUrl[] imageUrls;
     // Initialize VRCUrl array
-    private VRCUrl[] imageUrls = { 
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/01.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/02.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/03.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/04.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/05.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/06.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/07.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/08.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/09.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/10.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/11.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/12.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/13.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/14.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/15.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/16.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/17.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/18.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/19.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/20.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/21.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/22.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/23.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/24.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/25.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/26.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/27.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/28.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/29.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/30.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/31.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/32.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/33.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/34.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/35.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/36.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/37.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/38.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/39.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/40.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/41.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/42.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/43.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/44.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/45.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/46.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/47.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/48.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/49.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/50.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/51.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/52.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/53.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/54.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/55.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/56.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/57.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/58.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/59.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/60.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/61.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/62.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/63.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/64.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/65.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/66.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/67.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/68.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/69.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/70.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/71.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/72.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/73.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/74.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/75.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/76.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/77.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/78.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/79.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/80.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/81.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/82.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/83.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/84.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/85.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/86.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/87.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/88.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/89.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/90.jpg"),
-    new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/91.jpg")
-    };
+
+    //private VRCUrl[] imageUrls = { 
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/01.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/02.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/03.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/04.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/05.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/06.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/07.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/08.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/09.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/10.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/11.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/12.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/13.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/14.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/15.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/16.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/17.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/18.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/19.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/20.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/21.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/22.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/23.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/24.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/25.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/26.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/27.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/28.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/29.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/30.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/31.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/32.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/33.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/34.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/35.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/36.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/37.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/38.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/39.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/40.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/41.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/42.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/43.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/44.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/45.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/46.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/47.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/48.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/49.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/50.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/51.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/52.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/53.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/54.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/55.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/56.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/57.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/58.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/59.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/60.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/61.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/62.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/63.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/64.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/65.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/66.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/67.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/68.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/69.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/70.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/71.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/72.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/73.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/74.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/75.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/76.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/77.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/78.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/79.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/80.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/81.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/82.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/83.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/84.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/85.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/86.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/87.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/88.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/89.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/90.jpg"),
+    //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/91.jpg")
+    //};
+
+    private VRCUrl[] imageUrls = {
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/01.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/02.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/03.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/04.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/05.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/06.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/07.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/08.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/09.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/10.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/11.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/12.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/13.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/14.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/15.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/16.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/17.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/18.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/19.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/20.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/21.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/22.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/23.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/24.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/25.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/26.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/27.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/28.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/29.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/30.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/31.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/32.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/33.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/34.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/35.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/36.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/37.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/38.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/39.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/40.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/41.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/42.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/43.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/44.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/45.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/46.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/47.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/48.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/49.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/50.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/51.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/52.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/53.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/54.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/55.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/56.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/57.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/58.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/59.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/60.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/61.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/62.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/63.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/64.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/65.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/66.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/67.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/68.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/69.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/70.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/71.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/72.jpg"),
+};
+
 
     [SerializeField]
     private Renderer sphereRenderer;
     [UdonSynced]
     private int currentImageIndex = -1; // 当前显示的图片索引
+    [UdonSynced]
+    private int nextImageIndex = -1; // 下一轮将使用的图片索引
+
     private VRCImageDownloader imageDownloader;
     private Texture2D[] downloadedTextures;
 
@@ -138,6 +221,19 @@ public class GameManager : UdonSharpBehaviour
     public TextMeshProUGUI waitingText;
     public GameObject startButton;
 
+    // 添加设置面板UI组件
+    public GameObject settingsPanel;          // 设置面板的父物体
+    public UnityEngine.UI.Slider waitingTimeSlider;  // 准备阶段时间滑块
+    public UnityEngine.UI.Slider roundTimeSlider;    // 猜测阶段时间滑块
+    public UnityEngine.UI.Slider revealTimeSlider;   // 揭晓阶段时间滑块
+    public UnityEngine.UI.Slider totalRoundsSlider;  // 总回合数滑块
+    public TextMeshProUGUI waitingTimeText;   // 显示准备阶段时间的文本
+    public TextMeshProUGUI roundTimeText;     // 显示猜测阶段时间的文本
+    public TextMeshProUGUI revealTimeText;    // 显示揭晓阶段时间的文本
+    public TextMeshProUGUI totalRoundsText;   // 显示总回合数的文本
+    public UnityEngine.UI.Button applySettingsButton; // 应用设置按钮
+    public UnityEngine.UI.Button toggleSettingsButton; // 切换设置面板按钮
+
     [Header("Game Data")]
     public LocationRoundData locationData;
     public LatLongMapper latLongMapper;
@@ -145,11 +241,34 @@ public class GameManager : UdonSharpBehaviour
 
     [Header("Game Settings")]
     public int minPlayers = 1;
+    [UdonSynced]
     public int totalRounds = 5;
+    [Range(1, 10)]
+    public int minRounds = 1;
+    [Range(1, 20)]
+    public int maxRounds = 10;
 
-    public float waitingTime = 2f; //准备阶段（默认10秒）
-    public float roundTime = 2f;   //猜测阶段（默认15秒）
-    public float revealTime = 10f;  //揭晓阶段（默认10秒）
+    [UdonSynced]
+    public float waitingTime = 10f; // 准备阶段（默认10秒）
+    [Range(5, 60)]
+    public float minWaitingTime = 5f;
+    [Range(5, 60)]
+    public float maxWaitingTime = 30f;
+
+    [UdonSynced]
+    public float roundTime = 15f;   // 猜测阶段（默认15秒）
+    [Range(10, 120)]
+    public float minRoundTime = 10f;
+    [Range(10, 120)]
+    public float maxRoundTime = 60f;
+
+    [UdonSynced]
+    public float revealTime = 10f;  // 揭晓阶段（默认10秒）
+    [Range(5, 60)]
+    public float minRevealTime = 5f;
+    [Range(5, 60)]
+    public float maxRevealTime = 30f;
+
 
     [UdonSynced]
     private float countdownTimer = 0f;//倒计时
@@ -185,11 +304,167 @@ public class GameManager : UdonSharpBehaviour
     public RectTransform worldMapRectTransform;
     private const int MAX_PLAYERS = 16;
 
+    // Initialize the settings UI
+    private void InitializeSettingsUI()
+    {
+        //// Initially hide the settings panel
+        //if (settingsPanel != null)
+        //{
+        //    settingsPanel.SetActive(false);
+        //}
+
+        // Setup sliders with current values
+        if (waitingTimeSlider != null)
+        {
+            waitingTimeSlider.minValue = minWaitingTime;
+            waitingTimeSlider.maxValue = maxWaitingTime;
+            waitingTimeSlider.value = waitingTime;
+            UpdateWaitingTimeText();
+        }
+
+        if (roundTimeSlider != null)
+        {
+            roundTimeSlider.minValue = minRoundTime;
+            roundTimeSlider.maxValue = maxRoundTime;
+            roundTimeSlider.value = roundTime;
+            UpdateRoundTimeText();
+        }
+
+        if (revealTimeSlider != null)
+        {
+            revealTimeSlider.minValue = minRevealTime;
+            revealTimeSlider.maxValue = maxRevealTime;
+            revealTimeSlider.value = revealTime;
+            UpdateRevealTimeText();
+        }
+
+        if (totalRoundsSlider != null)
+        {
+            totalRoundsSlider.minValue = minRounds;
+            totalRoundsSlider.maxValue = maxRounds;
+            totalRoundsSlider.value = totalRounds;
+            UpdateTotalRoundsText();
+        }
+    }
+
+    public void OnWaitingTimeSliderChanged()
+{
+    if (waitingTimeSlider != null && Networking.IsOwner(gameObject))
+    {
+        // 直接使用滑块值，不需要手动取整
+        waitingTime = waitingTimeSlider.value;
+        UpdateWaitingTimeText();
+        RequestSerialization(); // 添加这行以立即同步更改
+        }
+}
+
+public void OnRoundTimeSliderChanged()
+{
+    if (roundTimeSlider != null && Networking.IsOwner(gameObject))
+    {
+        // 直接使用滑块值，不需要手动取整
+        roundTime = roundTimeSlider.value;
+        UpdateRoundTimeText();
+        RequestSerialization(); // 添加这行以立即同步更改
+        }
+}
+
+public void OnRevealTimeSliderChanged()
+{
+    if (revealTimeSlider != null && Networking.IsOwner(gameObject))
+    {
+        // 直接使用滑块值，不需要手动取整
+        revealTime = revealTimeSlider.value;
+        UpdateRevealTimeText();
+        RequestSerialization(); // 添加这行以立即同步更改
+        }
+}
+
+public void OnTotalRoundsSliderChanged()
+{
+    if (totalRoundsSlider != null && Networking.IsOwner(gameObject))
+    {
+        // 直接使用滑块值，不需要手动取整
+        totalRounds = (int)totalRoundsSlider.value;
+        UpdateTotalRoundsText();
+        RequestSerialization(); // 添加这行以立即同步更改
+        }
+}
+
+    // Methods to update UI text
+    private void UpdateWaitingTimeText()
+    {
+        if (waitingTimeText != null)
+        {
+            waitingTimeText.text = $"{waitingTime}";
+        }
+    }
+
+    private void UpdateRoundTimeText()
+    {
+        if (roundTimeText != null)
+        {
+            roundTimeText.text = $"{roundTime}";
+        }
+    }
+
+    private void UpdateRevealTimeText()
+    {
+        if (revealTimeText != null)
+        {
+            revealTimeText.text = $"{revealTime}";
+        }
+    }
+
+    private void UpdateTotalRoundsText()
+    {
+        if (totalRoundsText != null)
+        {
+            totalRoundsText.text = $"{totalRounds}";
+        }
+    }
+
+    // 目前没有用到，后期用来切换设置面板的显示状态
+    public void ToggleSettingsPanel()
+    {
+        if (settingsPanel != null)
+        {
+            settingsPanel.SetActive(!settingsPanel.activeSelf);
+        }
+    }
+
+    // 应用设置
+    public void ApplySettings()
+    {
+        if (!Networking.IsOwner(gameObject))
+        {
+            Debug.Log("只有房主可以应用设置");
+            return;
+        }
+
+        // Update the synced variables
+        waitingTime = waitingTimeSlider.value;
+        roundTime = roundTimeSlider.value;
+        revealTime = revealTimeSlider.value;
+        totalRounds = Mathf.RoundToInt(totalRoundsSlider.value);
+
+        // Sync to all clients
+        RequestSerialization();
+
+        Debug.Log($"设置已应用 - 准备时间: {waitingTime}秒, 猜测时间: {roundTime}秒, 揭晓时间: {revealTime}秒, 总回合数: {totalRounds}");
+
+        // Hide settings panel after applying
+        // 没必要隐藏设置面板，之后再添加
+        //settingsPanel.SetActive(false);
+    }
+
+
     void Start()
     {
         Debug.Log("[GameManager] 初始化完成");
 
-        localPlayer = Networking.LocalPlayer;
+        localPlayer = Networking.LocalPlayer; // 获取本地玩家
+
         if (localPlayer != null)
         {
             localPlayerId = localPlayer.playerId;
@@ -198,7 +473,11 @@ public class GameManager : UdonSharpBehaviour
         imageDownloader = new VRCImageDownloader();
         downloadedTextures = new Texture2D[imageUrls.Length];
 
+        // Initialize settings UI
+        InitializeSettingsUI();
+
         UpdateStartButtonState();
+
 
         if (waitingText != null)
         {
@@ -249,7 +528,7 @@ public class GameManager : UdonSharpBehaviour
 
         countdownPhase = 1; // 进入准备阶段
         countdownTimer = waitingTime; // 设置倒计时
-        waitingText.text = "准备中... 10 秒后开始！";
+        waitingText.text = "Preparing！";
 
         RequestSerialization();
     }
@@ -258,9 +537,9 @@ public class GameManager : UdonSharpBehaviour
     {
         switch (countdownPhase)
         {
-            case 1: return $"准备中... {Mathf.CeilToInt(countdownTimer)} 秒";
-            case 2: return $"猜测时间！{Mathf.CeilToInt(countdownTimer)} 秒";
-            case 3: return $"答案揭晓！{Mathf.CeilToInt(countdownTimer)} 秒";
+            case 1: return $"Preparing: {Mathf.CeilToInt(countdownTimer)}";
+            case 2: return $"Guessing Time: {Mathf.CeilToInt(countdownTimer)}";
+            case 3: return $"Answer Time: {Mathf.CeilToInt(countdownTimer)}";
             default: return "";
         }
     }
@@ -313,10 +592,11 @@ public class GameManager : UdonSharpBehaviour
       
         if (!Networking.IsOwner(gameObject)) return;
 
-        // 在显示答案之前，保存当前回合的所有玩家答案
+        // 在显示答案之前，保存当前回合的所有玩家答案，然后计算所有玩家的得分
         pinDataManager.SaveRoundAnswers(currentRound);
 
-       
+        // 计算当前回合的得分并显示
+        pinDataManager.CalculateRoundScores(this, currentRound);
 
 
         // 设置倒计时和阶段
@@ -330,16 +610,76 @@ public class GameManager : UdonSharpBehaviour
 
         SendCustomNetworkEvent(NetworkEventTarget.All, nameof(pinDataManager.SetShowAllPins));
         //pinDataManager.SetShowAllPins(true);
+        // 添加新的网络事件调用，用于显示所有Pin的连线
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(ShowAllPinLines));
     }
+
+    // 添加显示所有Pin连线的方法
+    public void ShowAllPinLines()
+    {
+        // 等待一小段时间确保 answerPinInstance 已经创建
+        SendCustomEventDelayedSeconds(nameof(DelayedShowPinLines), 0.2f);
+    }
+
+    // 延迟执行的方法，设置所有Pin的连线
+    public void DelayedShowPinLines()
+    {
+        if (anwserPinInstance == null)
+        {
+            Debug.LogError("[GameManager] 答案Pin不存在，无法创建连线");
+            return;
+        }
+
+        // 通过ObjectAssigner找到所有活动的Pin
+        Component[] activePoolObjects = objectAssigner._GetActivePoolObjects();
+        if (activePoolObjects == null || activePoolObjects.Length == 0)
+        {
+            Debug.LogWarning("[GameManager] 没有活动的Pin对象");
+            return;
+        }
+
+        foreach (Component poolObject in activePoolObjects)
+        {
+            if (poolObject == null) continue;
+
+            // 获取PinController组件
+            PinController pinController = poolObject.GetComponent<PinController>();
+            if (pinController != null)
+            {
+                // 设置答案Pin并显示连线
+                pinController.SetAnswerPin(anwserPinInstance);
+                // 设置答案Pin并显示连线
+                pinController.ShowLineToAnswer(true);
+            }
+        }
+    }
+
+    // 隐藏所有Pin连线的方法
+    public void HideAllPinLines()
+    {
+        Component[] activePoolObjects = objectAssigner._GetActivePoolObjects();
+        if (activePoolObjects == null) return;
+
+        foreach (Component poolObject in activePoolObjects)
+        {
+            if (poolObject == null) continue;
+
+            PinController pinController = poolObject.GetComponent<PinController>();
+            if (pinController != null)
+            {
+                pinController.ShowLineToAnswer(false);
+            }
+        }
+    }
+
 
     public void UpdateAnswerPinAll()
 {
 
-
     Vector2 answerPosition = locationData.GetLocationLatLong(currentImageIndex); // currentImageIndex是当前回合的图片索引
 
         // 计算世界空间位置
-        Vector3[] corners = new Vector3[4];
+    Vector3[] corners = new Vector3[4];
     worldMapRectTransform.GetWorldCorners(corners);
     Vector3 bottomLeft = corners[0];
     Vector3 topRight = corners[2];
@@ -374,8 +714,15 @@ public class GameManager : UdonSharpBehaviour
         }
     }
 
-    // 更新Pin位置和显示
-    anwserPinInstance.transform.position = worldPos;
+        // 验证实例化是否成功
+        if (anwserPinInstance == null)
+        {
+            Debug.LogError("[GameManager] 答案Pin实例化失败!");
+            return;
+        }
+
+        // 更新Pin位置和显示
+        anwserPinInstance.transform.position = worldPos;
     anwserPinInstance.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
     anwserPinInstance.SetActive(true);
     
@@ -396,6 +743,8 @@ public class GameManager : UdonSharpBehaviour
 
         // 隐藏除了自己的pin的所有pin
         SendCustomNetworkEvent(NetworkEventTarget.All, nameof(pinDataManager.SetHideOtherPins));
+        // 隐藏所有Pin连线
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(HideAllPinLines));
 
         // 进入新回合
         isRoundActive = true;
@@ -574,10 +923,28 @@ public class GameManager : UdonSharpBehaviour
         TextMeshProUGUI buttonText = startButton.GetComponentInChildren<TextMeshProUGUI>();
         if (buttonText)
         {
-            buttonText.text = !isOwner ? "Waiting for host" :
+            buttonText.text = !isOwner ? "Owner Only" :
                             !canStart ? $"Need {minPlayers} players" :
                             "Start Game";
         }
+
+        // 更新应用设置按钮
+        if (applySettingsButton != null)
+        {
+            applySettingsButton.interactable = isOwner;
+
+            // 可选：添加说明文本
+            TextMeshProUGUI settingsButtonText = applySettingsButton.GetComponentInChildren<TextMeshProUGUI>();
+            if (settingsButtonText && !isOwner)
+            {
+                settingsButtonText.text = "Owner Only";
+            }
+            else if (settingsButtonText)
+            {
+                settingsButtonText.text = "Apply Settings";
+            }
+        }
+
     }
 
     public override void OnPlayerJoined(VRCPlayerApi player)
@@ -626,6 +993,38 @@ public class GameManager : UdonSharpBehaviour
             NetworkLoadPanorama();
         }
 
+        // Update the UI to reflect any changes in settings
+        UpdateSettingsUI();
+
+    }
+
+    // Add this method to update the UI based on synced values
+    private void UpdateSettingsUI()
+    {
+        // Update sliders to match synced values
+        if (waitingTimeSlider != null)
+        {
+            waitingTimeSlider.value = waitingTime;
+            UpdateWaitingTimeText();
+        }
+
+        if (roundTimeSlider != null)
+        {
+            roundTimeSlider.value = roundTime;
+            UpdateRoundTimeText();
+        }
+
+        if (revealTimeSlider != null)
+        {
+            revealTimeSlider.value = revealTime;
+            UpdateRevealTimeText();
+        }
+
+        if (totalRoundsSlider != null)
+        {
+            totalRoundsSlider.value = totalRounds;
+            UpdateTotalRoundsText();
+        }
     }
 
     // 提供给 PinDataManager 用于获取每轮正确答案的方法
