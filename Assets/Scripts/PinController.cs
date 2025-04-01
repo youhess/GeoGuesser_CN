@@ -45,6 +45,11 @@ public class PinController : UdonSharpBehaviour
 
     private bool isPlacedOnMap = false;
 
+    [Header("音频设置")]
+    public AudioSource audioSource;  // 音频源组件
+    public AudioClip pickupSound;    // 拾取音效
+    public AudioClip dropSound;      // 放下音效
+
 
     private void Start()
     {
@@ -88,6 +93,20 @@ public class PinController : UdonSharpBehaviour
             else
             {
                 Debug.Log("[PinController] 成功找到 LineRenderer 组件！");
+            }
+        }
+
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+            if (audioSource == null)
+            {
+                Debug.LogWarning("[PinController] 未找到 AudioSource组件，正在尝试添加...");
+                // 在 UdonSharp 中不能直接添加组件，所以这里只能输出警告
+            }
+            else
+            {
+                Debug.Log("[PinController] 成功找到 AudioSource组件！");
             }
         }
 
@@ -216,6 +235,12 @@ public class PinController : UdonSharpBehaviour
 
     public override void OnPickup()
     {
+
+        if (audioSource != null && pickupSound != null)
+        {
+            audioSource.PlayOneShot(pickupSound);
+        }
+
         _isPickedUp = true;
         if (_rigidbody != null)
         {
@@ -226,6 +251,11 @@ public class PinController : UdonSharpBehaviour
 
     public override void OnDrop()
     {
+        if (audioSource != null && dropSound != null)
+        {
+            audioSource.PlayOneShot(dropSound);
+        }
+
         //Debug.Log("OnDrop");
         _isPickedUp = false;
         
@@ -241,8 +271,8 @@ public class PinController : UdonSharpBehaviour
         // 保持垂直
         transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
 
-        // 更新连线位置
-        UpdateLinePosition();
+        // 更新连线位置, 目前我认为没有必要
+        //UpdateLinePosition();
 
     }
 

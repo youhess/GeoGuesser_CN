@@ -98,13 +98,27 @@ public class LocationRoundData : UdonSharpBehaviour
         return new Vector2(latitude, longitude);
     }
 
-    // 获取地点名称
-    public string GetLocationName(int index)
+    // 获取中文地点名称
+    public string GetLocationCnName(int index)
     {
         if (locationDataList != null && index < locationDataList.Count)
         {
             var locationData = locationDataList[index].DataDictionary;
-            if (locationData.TryGetValue("name", out DataToken nameValue))
+            if (locationData.TryGetValue("cn_name", out DataToken nameValue))
+            {
+                return nameValue.String;
+            }
+        }
+        return "Unknown Location";
+    }
+
+    // 获取英文地点名称
+    public string GetLocationEnName(int index)
+    {
+        if (locationDataList != null && index < locationDataList.Count)
+        {
+            var locationData = locationDataList[index].DataDictionary;
+            if (locationData.TryGetValue("en_name", out DataToken nameValue))
             {
                 return nameValue.String;
             }

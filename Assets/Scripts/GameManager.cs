@@ -231,6 +231,7 @@ public class GameManager : UdonSharpBehaviour
     public TextMeshProUGUI roundTimeText;     // 显示猜测阶段时间的文本
     public TextMeshProUGUI revealTimeText;    // 显示揭晓阶段时间的文本
     public TextMeshProUGUI totalRoundsText;   // 显示总回合数的文本
+    public TextMeshProUGUI LocationText;      // 显示地点信息的文本
     public UnityEngine.UI.Button applySettingsButton; // 应用设置按钮
     public UnityEngine.UI.Button toggleSettingsButton; // 切换设置面板按钮
 
@@ -276,9 +277,9 @@ public class GameManager : UdonSharpBehaviour
     private int countdownPhase = 0; // 0: 未开始, 1: 准备, 2: 猜测, 3: 揭晓
 
 
-    [Header("Score System")]
-    public int maxScore = 5000;
-    public float maxDistance = 1000f;
+    //[Header("Score System")]
+    //public int maxScore = 5000;
+    //public float maxDistance = 1000f;
 
     [Header("Result Visualization")]
     public float resultShowDuration = 5f;
@@ -295,6 +296,10 @@ public class GameManager : UdonSharpBehaviour
     private bool isRoundActive = false;
     //[UdonSynced]
     //private Vector2[] currentRoundPinPositions;
+
+    [UdonSynced]
+    public int[] roundImageIndices; // 存储每个回合使用的图片索引
+
 
     // 本地变量
     private VRCPlayerApi localPlayer;
@@ -508,6 +513,7 @@ public void OnTotalRoundsSliderChanged()
         VRCPlayerApi[] players = new VRCPlayerApi[VRCPlayerApi.GetPlayerCount()];
         VRCPlayerApi.GetPlayers(players);
 
+
         if (players.Length < minPlayers) return; // 玩家数量不足
 
         // 初始化 PinDataManager
@@ -516,9 +522,19 @@ public void OnTotalRoundsSliderChanged()
             pinDataManager.InitializeRounds(totalRounds);
         }
 
+        // 初始化回合图片索引数组
+        roundImageIndices = new int[totalRounds];
+        for (int i = 0; i < totalRounds; i++)
+        {
+            roundImageIndices[i] = -1; // 使用-1表示尚未分配
+        }
+
         // 重置分数 对局重新开始
         gameStarted = true; 
         currentRound = 0;
+        // 进入准备阶段
+        countdownPhase = 1; // 进入准备阶段
+        countdownTimer = waitingTime; // 设置倒计时
         ResetScores(); 
 
         if (waitingText != null)
@@ -526,11 +542,22 @@ public void OnTotalRoundsSliderChanged()
             waitingText.text = "";
         }
 
-        countdownPhase = 1; // 进入准备阶段
-        countdownTimer = waitingTime; // 设置倒计时
+      
         waitingText.text = "Preparing！";
 
+        //RequestSerialization();
+
+        // 需要在StartGame阶段设置currentImageIndex，可以优化图片的加载
+        //currentImageIndex = UnityEngine.Random.Range(0, imageUrls.Length);
+        //Debug.Log($"[GameManager] 开始第 {currentRound} 轮，加载图片 {currentImageIndex}");
+
         RequestSerialization();
+
+        //// 然后触发所有客户端加载图片
+        //SendCustomNetworkEvent(NetworkEventTarget.All, nameof(NetworkLoadPanorama));
+
+        // 同时预加载第一轮的图片
+        PreloadNextImage();
     }
 
     private string GetCountdownText()
@@ -566,22 +593,31 @@ public void OnTotalRoundsSliderChanged()
     {
         if (!Networking.IsOwner(gameObject)) return;
 
-        // TODO: 之后可以用更加先进的算法来选择图片
-        currentImageIndex = UnityEngine.Random.Range(0, imageUrls.Length);
-        Debug.Log($"[GameManager] 开始第 {currentRound} 轮，加载图片 {currentImageIndex}");
+        // 使用预加载的图片索引
+        if (nextImageIndex >= 0)
+        {
+            currentImageIndex = nextImageIndex;
+            nextImageIndex = -1; // 重置预加载索引
+        }
+        else
+        {
+            // 如果没有预加载，随机选择一个
+            currentImageIndex = UnityEngine.Random.Range(0, imageUrls.Length);
+        }
+
+        // 记录当前回合的图片索引
+        roundImageIndices[currentRound] = currentImageIndex;
+
         RequestSerialization();
-
-
-        //LoadRoundImage(currentImageIndex); // 切换新图片
-
-        //// 然后触发所有客户端加载图片
+        // 显示图片
         SendCustomNetworkEvent(NetworkEventTarget.All, nameof(NetworkLoadPanorama));
-
-        // 等待一小段时间后再触发图片加载
-        //SendCustomEventDelayedSeconds(nameof(NetworkLoadPanorama), 0.5f);
+     
 
         countdownPhase = 2;
         countdownTimer = roundTime; //设置猜测时间
+        RequestSerialization();
+
+        
         waitingText.text = $"猜测时间！{roundTime} 秒";
 
         
@@ -594,24 +630,93 @@ public void OnTotalRoundsSliderChanged()
 
         // 在显示答案之前，保存当前回合的所有玩家答案，然后计算所有玩家的得分
         pinDataManager.SaveRoundAnswers(currentRound);
-
         // 计算当前回合的得分并显示
         pinDataManager.CalculateRoundScores(this, currentRound);
 
+       
 
         // 设置倒计时和阶段
         countdownPhase = 3;
         countdownTimer = revealTime;
         RequestSerialization();
 
-        // 触发所有客户端更新Pin
-        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateAnswerPinAll));
+        //// 触发所有客户端更新Pin
+        //SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateAnswerPinAll));
 
 
-        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(pinDataManager.SetShowAllPins));
-        //pinDataManager.SetShowAllPins(true);
-        // 添加新的网络事件调用，用于显示所有Pin的连线
-        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(ShowAllPinLines));
+        //SendCustomNetworkEvent(NetworkEventTarget.All, nameof(pinDataManager.SetShowAllPins));
+        ////pinDataManager.SetShowAllPins(true);
+        //// 添加新的网络事件调用，用于显示所有Pin的连线
+        //SendCustomNetworkEvent(NetworkEventTarget.All, nameof(ShowAllPinLines));
+
+        //// 显示地点信息
+        //SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateLocationInfo));
+
+        // 4. 发送单个网络事件来更新所有客户端的UI和状态
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateAnswerPinAndLineAndPhaseUI));
+
+        // 在这里预加载下一轮的图片
+        PreloadNextImage();
+
+    }
+
+    // 新增方法，处理揭晓阶段的所有UI更新
+    public void UpdateAnswerPinAndLineAndPhaseUI()
+    {
+        // 更新答案Pin
+        UpdateAnswerPinAll();
+
+        // 显示所有玩家的Pin
+        pinDataManager.SetShowAllPins();
+
+        // 显示Pin之间的连线
+        ShowAllPinLines();
+
+        // 更新地点信息
+        UpdateLocationInfo();
+    }
+
+    private void PreloadNextImage()
+    {
+        // 选择下一轮的图片
+        nextImageIndex = UnityEngine.Random.Range(0, imageUrls.Length);
+
+        // 确保同步 nextImageIndex 到所有客户端
+        RequestSerialization();
+
+        // 在后台开始加载图片
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(PreloadImageForNextRound));
+    }
+
+    public void PreloadImageForNextRound()
+    {
+        if (nextImageIndex >= 0 && nextImageIndex < imageUrls.Length)
+        {
+            Debug.Log($"[GameManager] 预加载下一轮图片索引: {nextImageIndex}");
+
+            // 检查是否已缓存该图片
+            if (downloadedTextures[nextImageIndex] != null)
+            {
+                Debug.Log($"[GameManager] 图片 {nextImageIndex} 已缓存，无需预加载");
+                return;
+            }
+
+            // 使用与 NetworkLoadPanorama 相同的方式，但不直接应用到主渲染器
+            var textureInfo = new TextureInfo();
+            textureInfo.GenerateMipMaps = true;
+
+            // 下载图片但不直接应用到渲染器
+            imageDownloader.DownloadImage(
+                imageUrls[nextImageIndex],
+                null, // 不指定材质，仅下载
+                (IUdonEventReceiver)this,
+                textureInfo
+            );
+        }
+        else
+        {
+            Debug.LogError($"[GameManager] 无效的预加载图片索引: {nextImageIndex}");
+        }
     }
 
     // 添加显示所有Pin连线的方法
@@ -672,7 +777,15 @@ public void OnTotalRoundsSliderChanged()
         }
     }
 
+    //更新地点信息
+    public void UpdateLocationInfo()
+    {
+       string cnname = locationData.GetLocationCnName(currentImageIndex);
+       string enname = locationData.GetLocationEnName(currentImageIndex);
+        LocationText.text = $"{cnname} \n ({enname})";
+    }
 
+    // 添加更新答案Pin的方法
     public void UpdateAnswerPinAll()
 {
 
@@ -750,7 +863,6 @@ public void OnTotalRoundsSliderChanged()
         isRoundActive = true;
         currentRound++; // 更新回合数
 
-
         if (currentRound == 0) // 只有第一轮有准备时间
         {
             // 隐藏答案Pin
@@ -776,9 +888,25 @@ public void OnTotalRoundsSliderChanged()
             waitingText.text = $"猜测时间！{Mathf.CeilToInt(roundTime)} 秒";
         }
 
-        // 为新回合加载新图片
-        currentImageIndex = UnityEngine.Random.Range(0, imageUrls.Length);
-        Debug.Log($"[GameManager] 开始第 {currentRound} 轮，加载图片 {currentImageIndex}");
+        //// 为新回合加载新图片
+        //currentImageIndex = UnityEngine.Random.Range(0, imageUrls.Length);
+        //Debug.Log($"[GameManager] 开始第 {currentRound} 轮，加载图片 {currentImageIndex}");
+        RequestSerialization();
+
+        // 使用预加载的图片索引
+        if (nextImageIndex >= 0)
+        {
+            currentImageIndex = nextImageIndex;
+            nextImageIndex = -1; // 重置预加载索引
+        }
+        else
+        {
+            // 如果没有预加载，随机选择一个
+            currentImageIndex = UnityEngine.Random.Range(0, imageUrls.Length);
+        }
+        // 记录新回合的图片索引
+        roundImageIndices[currentRound] = currentImageIndex;
+
         RequestSerialization();
         SendCustomNetworkEvent(NetworkEventTarget.All, nameof(NetworkLoadPanorama));
     }
@@ -833,17 +961,50 @@ public void OnTotalRoundsSliderChanged()
 
     public override void OnImageLoadSuccess(IVRCImageDownload result)
     {
-        Debug.Log($"Image load success: {result.SizeInMemoryBytes} bytes");
+        string resultString = result.Result.ToString();
+        Debug.Log($"Image load success: {result.SizeInMemoryBytes} bytes: {resultString}");
 
-        if (sphereRenderer != null)
+        // 找出这是哪个URL对应的图片
+        int imageIndex = -1;
+
+        // 从结果字符串中提取URL部分
+        if (resultString.Contains("ImageFrom:"))
         {
-            sphereRenderer.material.SetTexture("_MainTex", result.Result);
-            downloadedTextures[currentImageIndex] = result.Result;
-            Debug.Log($"Applied texture for player {localPlayer.displayName}");
+            string resultUrl = resultString.Split(new string[] { "ImageFrom:" }, StringSplitOptions.None)[1];
+            resultUrl = resultUrl.Split(' ')[0]; // 移除后面的 (UnityEngine.Texture2D) 部分
+
+            // 匹配我们的URL数组
+            for (int i = 0; i < imageUrls.Length; i++)
+            {
+                if (resultUrl == imageUrls[i].ToString())
+                {
+                    imageIndex = i;
+                    Debug.Log($"匹配到图片索引: {i} 对应URL: {resultUrl}");
+                    break;
+                }
+            }
+        }
+
+        // 如果找到了对应的索引
+        if (imageIndex >= 0)
+        {
+            // 无论是当前图片还是预加载的图片，都保存到缓存中
+            downloadedTextures[imageIndex] = result.Result;
+
+            // 如果是当前正在显示的图片，应用到渲染器
+            if (imageIndex == currentImageIndex && sphereRenderer != null)
+            {
+                sphereRenderer.material.SetTexture("_MainTex", result.Result);
+                Debug.Log($"Applied current texture (index {imageIndex}) for player {localPlayer.displayName}");
+            }
+            else
+            {
+                Debug.Log($"Cached preloaded texture for index {imageIndex}");
+            }
         }
         else
         {
-            Debug.LogError("SphereRenderer is null!");
+            Debug.LogWarning($"Could not determine index for downloaded image: {resultString}");
         }
     }
 
@@ -856,28 +1017,33 @@ public void OnTotalRoundsSliderChanged()
     {
         gameStarted = false;
         isRoundActive = false;
-
+        RequestSerialization(); 
         //if (waitingText != null)
         //{
         //    waitingText.text = "Game Over!";
         //}
 
         // Send network event to all clients to show game over
-        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(ShowGameOver));
+     
 
-        // 计算并显示最终得分
-        pinDataManager.CalculateFinalScores(this);
+        
 
-        RequestSerialization();
+
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(ShowGameOverAndFinalScores));
+
     }
 
-    public void ShowGameOver()
+    public void ShowGameOverAndFinalScores()
     {
         Debug.Log("Game Over!");
         if (waitingText != null)
         {
             waitingText.text = "Game Over!";
         }
+
+        // 计算并显示最终得分
+        pinDataManager.CalculateFinalScores(this);
+
     }
 
     private void ResetScores()
@@ -993,6 +1159,12 @@ public void OnTotalRoundsSliderChanged()
             NetworkLoadPanorama();
         }
 
+        // 如果 nextImageIndex 有效，开始预加载
+        if (nextImageIndex >= 0 && nextImageIndex < imageUrls.Length)
+        {
+            PreloadImageForNextRound();
+        }
+
         // Update the UI to reflect any changes in settings
         UpdateSettingsUI();
 
@@ -1027,9 +1199,32 @@ public void OnTotalRoundsSliderChanged()
         }
     }
 
-    // 提供给 PinDataManager 用于获取每轮正确答案的方法
     public Vector2 GetRoundAnswer(int roundIndex)
     {
-        return locationData.GetLocationLatLong(roundIndex);
+        if (roundIndex >= 0 && roundIndex < roundImageIndices.Length && roundImageIndices[roundIndex] >= 0)
+        {
+            // 使用该回合实际使用的图片索引
+            int imageIndex = roundImageIndices[roundIndex];
+            return locationData.GetLocationLatLong(imageIndex);
+        }
+
+        // 回退到当前图片索引（如果回合索引无效）
+        return locationData.GetLocationLatLong(currentImageIndex);
+    }
+
+    // 在 GameManager 类中添加
+    public int[] GetRoundImageIndices()
+    {
+        return roundImageIndices;
+    }
+
+    public int GetImageUrlsLength()
+    {
+        return imageUrls.Length;
+    }
+
+    public int GetCurrentImageIndex()
+    {
+        return currentImageIndex;
     }
 }

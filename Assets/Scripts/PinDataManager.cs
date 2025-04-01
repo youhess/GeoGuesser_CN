@@ -153,8 +153,8 @@ public class PinDataManager : UdonSharpBehaviour
                 if (dataPoint.TryGetValue("id", TokenType.Int, out DataToken idToken) && idToken.Int == playerId)
                 {
                     // 更新经纬度
-                    dataPoint.SetValue("longitude", pinCoordinates.x);
-                    dataPoint.SetValue("latitude", pinCoordinates.y);
+                    dataPoint.SetValue("latitude", pinCoordinates.x);
+                    dataPoint.SetValue("longitude", pinCoordinates.y);
                     dataPoint.SetValue("isPlaced", isPlacedOnMap);
                     playerFound = true;
                     break;
@@ -167,8 +167,8 @@ public class PinDataManager : UdonSharpBehaviour
         {
             DataDictionary newDataPoint = new DataDictionary();
             newDataPoint.SetValue("id", playerId);
-            newDataPoint.SetValue("longitude", pinCoordinates.x);
-            newDataPoint.SetValue("latitude", pinCoordinates.y);
+            newDataPoint.SetValue("latitude", pinCoordinates.x);
+            newDataPoint.SetValue("longitude", pinCoordinates.y);
             newDataPoint.SetValue("isPlaced", isPlacedOnMap);
             dataList.Add(newDataPoint);
         }
@@ -305,46 +305,65 @@ public class PinDataManager : UdonSharpBehaviour
         // 遍历每一轮
         for (int round = 0; round < totalRounds; round++)
         {
-            // 获取该轮的正确答案
-            Vector2 correctAnswer = gameManager.GetRoundAnswer(round);
-
-            // 获取该轮的所有玩家答案
-            if (roundAnswers[round] != null)
+            // 检查这个回合是否已经完成（有没有存储玩家答案）
+            if (roundAnswers[round] == null || roundAnswers[round].Count == 0)
             {
-                // 计算每个玩家在这轮的得分
-                for (int i = 0; i < roundAnswers[round].Count; i++)
+                Debug.LogWarning($"[PinDataManager] 回合 {round} 没有有效的玩家答案数据，跳过计分");
+                continue;
+            }
+
+            // 获取该轮使用的图片索引
+            int imageIndex = round < gameManager.roundImageIndices.Length ?
+                             gameManager.roundImageIndices[round] :
+                             gameManager.GetCurrentImageIndex();
+
+            // 如果该回合没有记录图片索引或索引无效，使用默认索引(0)或跳过
+            if (imageIndex < 0 || imageIndex >= gameManager.GetImageUrlsLength())
+            {
+                Debug.LogWarning($"[PinDataManager] 回合 {round} 的图片索引 {imageIndex} 无效，使用默认索引0");
+                imageIndex = 0; // 使用第一张图片作为默认
+            }
+
+            // 获取对应图片的正确答案位置
+            Vector2 correctAnswer = gameManager.locationData.GetLocationLatLong(imageIndex);
+            Debug.Log($"[PinDataManager] 计算回合 {round} 的最终得分, 图片索引: {imageIndex}, 正确答案: {correctAnswer}");
+
+            // 计算每个玩家在这轮的得分
+            for (int i = 0; i < roundAnswers[round].Count; i++)
+            {
+                if (roundAnswers[round].TryGetValue(i, TokenType.DataDictionary, out DataToken dataToken))
                 {
-                    if (roundAnswers[round].TryGetValue(i, TokenType.DataDictionary, out DataToken dataToken))
+                    DataDictionary playerAnswer = dataToken.DataDictionary;
+                    if (playerAnswer.TryGetValue("id", TokenType.Int, out DataToken idToken) &&
+                        playerAnswer.TryGetValue("longitude", TokenType.Float, out DataToken longToken) &&
+                        playerAnswer.TryGetValue("latitude", TokenType.Float, out DataToken latToken))
                     {
-                        DataDictionary playerAnswer = dataToken.DataDictionary;
-                        if (playerAnswer.TryGetValue("id", TokenType.Int, out DataToken idToken) &&
-                            playerAnswer.TryGetValue("longitude", TokenType.Float, out DataToken longToken) &&
-                            playerAnswer.TryGetValue("latitude", TokenType.Float, out DataToken latToken))
+                        int playerId = idToken.Int;
+                        Vector2 playerGuess = new Vector2(latToken.Float, longToken.Float);
+
+                        // 获取放置状态，如果不存在则默认为 false
+                        bool isPlaced = false;
+                        if (playerAnswer.TryGetValue("isPlaced", TokenType.Boolean, out DataToken placedToken))
                         {
-                            int playerId = idToken.Int;
-                            Vector2 playerGuess = new Vector2(latToken.Float, longToken.Float);
-
-                            // 获取放置状态，如果不存在则默认为 false
-                            bool isPlaced = false;
-                            if (playerAnswer.TryGetValue("isPlaced", TokenType.Boolean, out DataToken placedToken))
-                            {
-                                isPlaced = placedToken.Boolean;
-                            }
-
-                            // 计算得分，考虑 pin 是否被放置
-                            float score = CalculateScore(correctAnswer, playerGuess, isPlaced);
-
-                            // 累加到玩家总分
-                            float currentScore = 0;
-                            string playerKey = $"player_{playerId}";
-
-                            if (playerTotalScores.TryGetValue(playerKey, TokenType.Float, out DataToken currentScoreToken))
-                            {
-                                currentScore = currentScoreToken.Float;
-                            }
-
-                            playerTotalScores.SetValue(playerKey, currentScore + score);
+                            isPlaced = placedToken.Boolean;
                         }
+
+                        // 记录详细的调试信息
+                        Debug.Log($"[PinDataManager] 回合 {round}, 玩家 {playerId} 猜测: {playerGuess}, 正确答案: {correctAnswer}, 已放置: {isPlaced}");
+
+                        // 计算得分，考虑 pin 是否被放置
+                        float score = CalculateScore(correctAnswer, playerGuess, isPlaced);
+
+                        // 累加到玩家总分
+                        float currentScore = 0;
+                        string playerKey = $"player_{playerId}";
+
+                        if (playerTotalScores.TryGetValue(playerKey, TokenType.Float, out DataToken currentScoreToken))
+                        {
+                            currentScore = currentScoreToken.Float;
+                        }
+
+                        playerTotalScores.SetValue(playerKey, currentScore + score);
                     }
                 }
             }
@@ -366,10 +385,88 @@ public class PinDataManager : UdonSharpBehaviour
         roundScoresText.text = finalScores.ToString();
     }
 
+    //public void CalculateFinalScores(GameManager gameManager)
+    //{
+    //    StringBuilder finalScores = new StringBuilder("Final Scores:\n");
+
+    //    // 用 DataDictionary 存储玩家分数
+    //    DataDictionary playerTotalScores = new DataDictionary();
+
+    //    // 遍历每一轮
+    //    for (int round = 0; round < totalRounds; round++)
+    //    {
+    //        // 获取该轮的正确答案
+    //        Vector2 correctAnswer = gameManager.GetRoundAnswer(round);
+
+    //        // 获取该轮的所有玩家答案
+    //        if (roundAnswers[round] != null)
+    //        {
+    //            // 计算每个玩家在这轮的得分
+    //            for (int i = 0; i < roundAnswers[round].Count; i++)
+    //            {
+    //                if (roundAnswers[round].TryGetValue(i, TokenType.DataDictionary, out DataToken dataToken))
+    //                {
+    //                    DataDictionary playerAnswer = dataToken.DataDictionary;
+    //                    if (playerAnswer.TryGetValue("id", TokenType.Int, out DataToken idToken) &&
+    //                        playerAnswer.TryGetValue("longitude", TokenType.Float, out DataToken longToken) &&
+    //                        playerAnswer.TryGetValue("latitude", TokenType.Float, out DataToken latToken))
+    //                    {
+    //                        int playerId = idToken.Int;
+    //                        Vector2 playerGuess = new Vector2(latToken.Float, longToken.Float);
+    //                        //Vector2 playerGuess = new Vector2(longToken.Float, latToken.Float);
+
+    //                        // 获取放置状态，如果不存在则默认为 false
+    //                        bool isPlaced = false;
+    //                        if (playerAnswer.TryGetValue("isPlaced", TokenType.Boolean, out DataToken placedToken))
+    //                        {
+    //                            isPlaced = placedToken.Boolean;
+    //                        }
+
+    //                        //Debug.Log($"[PinDataManager] Player {playerId} guess: {playerGuess},correctAnswer: {correctAnswer}, isPlaced: {isPlaced}");
+
+    //                        // 计算得分，考虑 pin 是否被放置
+    //                        float score = CalculateScore(correctAnswer, playerGuess, isPlaced);
+
+    //                        // 累加到玩家总分
+    //                        float currentScore = 0;
+    //                        string playerKey = $"player_{playerId}";
+
+    //                        if (playerTotalScores.TryGetValue(playerKey, TokenType.Float, out DataToken currentScoreToken))
+    //                        {
+    //                            currentScore = currentScoreToken.Float;
+    //                        }
+
+    //                        playerTotalScores.SetValue(playerKey, currentScore + score);
+    //                    }
+    //                }
+    //            }
+    //        }
+    //    }
+
+    //    // 构建最终得分字符串
+    //    DataList playerKeys = playerTotalScores.GetKeys();
+    //    for (int i = 0; i < playerKeys.Count; i++)
+    //    {
+    //        string playerKey = playerKeys[i].String;
+    //        if (playerTotalScores.TryGetValue(playerKey, TokenType.Float, out DataToken scoreToken))
+    //        {
+    //            int playerId = int.Parse(playerKey.Split('_')[1]);
+    //            finalScores.AppendLine($"Player {playerId}: {scoreToken.Float:F0}");
+    //        }
+    //    }
+
+    //    // 更新UI显示
+    //    roundScoresText.text = finalScores.ToString();
+    //}
+
     // 计算每一轮所有玩家的得分
     public void CalculateRoundScores(GameManager gameManager, int roundIndex)
     {
         StringBuilder roundScores = new StringBuilder($"Round {roundIndex + 1} Scores:\n");
+
+        // 获取图片索引（用于调试）
+        int imageIndex = gameManager.roundImageIndices[roundIndex];
+
         // 获取该轮的正确答案
         Vector2 correctAnswer = gameManager.GetRoundAnswer(roundIndex);
         // 获取该轮的所有玩家答案
@@ -387,16 +484,18 @@ public class PinDataManager : UdonSharpBehaviour
                     {
                         int playerId = idToken.Int;
                         Vector2 playerGuess = new Vector2(latToken.Float, longToken.Float);
+                        //Vector2 playerGuess = new Vector2(longToken.Float, latToken.Float);
                         // 获取放置状态，如果不存在则默认为 false
                         bool isPlaced = false;
                         if (playerAnswer.TryGetValue("isPlaced", TokenType.Boolean, out DataToken placedToken))
                         {
                             isPlaced = placedToken.Boolean;
                         }
+                   
 
                         // 计算得分时考虑放置状态
                         float score = CalculateScore(correctAnswer, playerGuess, isPlaced);
-
+                        Debug.Log($"[PinDataManager] Player {playerId} guess: {playerGuess},correctAnswer: {correctAnswer}, isPlaced: {isPlaced}, score: {score}");
                         // 添加到字符串
                         roundScores.AppendLine($"Player {playerId}: {score:F0}{(!isPlaced ? " (Not placed)" : "")}");
                     }
@@ -428,23 +527,41 @@ public class PinDataManager : UdonSharpBehaviour
 
     private float CalculateScore(Vector2 correctAnswer, Vector2 playerGuess, bool isPlacedOnMap)
     {
-
-        // 如果Pin未放置在地图上，直接返回0分
+        // If Pin isn't placed on the map, return 0 points
         if (!isPlacedOnMap)
         {
             return 0;
         }
 
-        // 计算距离（可以使用简单的欧几里得距离或更复杂的地球表面距离）
+        // Calculate distance (using Euclidean distance)
         float distance = Vector2.Distance(correctAnswer, playerGuess);
-        
-        // 基于距离计算分数（示例：满分100，距离越远分数越低）
+
+        Debug.Log($"[PinDataManager] Distance: {distance}");
+
+        // More sensitive score calculation
         float maxScore = 100f;
-        float maxDistance = 1000f; // 最大距离，超过这个距离得0分
-        
-        if (distance >= maxDistance) return 0;
-        
-        return maxScore * (1 - distance / maxDistance);
+        float maxDistance = 15f; // Reduced from 1000 to make scoring more sensitive to distance
+
+        // Optional: Add a minimum score threshold for very close guesses
+        float minDistance = 1f; // Within 5 units is considered "very close"
+
+        if (distance <= minDistance)
+        {
+            // Very close guesses get max or near-max points
+            return maxScore * 0.95f + (minDistance - distance) / minDistance * (maxScore * 0.05f);
+        }
+        else if (distance >= maxDistance)
+        {
+            // Too far gets 0 points
+            return 0;
+        }
+        else
+        {
+            // Use a non-linear curve to make score drop more quickly with distance
+            // This creates more meaningful differentiation between close and far pins
+            float normalizedDistance = (distance - minDistance) / (maxDistance - minDistance);
+            return maxScore * 0.95f * (1 - Mathf.Pow(normalizedDistance, 2));
+        }
     }
 
     private void UpdatePinVisibility()
