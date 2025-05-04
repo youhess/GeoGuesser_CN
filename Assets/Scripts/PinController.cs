@@ -15,7 +15,7 @@ public class PinController : UdonSharpBehaviour
     public RectTransform mapRectTransform;
     public GameManager gameManager;
     public TextMeshProUGUI ownername; // 显示所有者名字
-    public TextMeshProUGUI coordinateText; // 显示所有者名字
+    public TextMeshProUGUI coordinateText; // 显示经纬度
     public TextMeshProUGUI debugText; // 显示调试信息
 
     private VRCPlayerApi _owner; // 所有者
@@ -610,7 +610,8 @@ public class PinController : UdonSharpBehaviour
         if (_owner != null && _owner.IsValid())
         {
             // 更新显示文本为所有者的显示名称
-            ownername.text = $"Player {_owner.playerId}: {_owner.displayName}";
+            //ownername.text = $"Player {_owner.playerId}: {_owner.displayName}";
+            ownername.text = $"{_owner.displayName}";
             //ownername.text = _owner.displayName;
             Debug.Log($"对象 '{gameObject.name}' 的所有者是: {_owner.displayName}");
         }

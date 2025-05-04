@@ -13,6 +13,7 @@ using VRC.Udon.Common.Interfaces;
 [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
 public class PinDataManager : UdonSharpBehaviour
 {
+    public Transform resetTargetTransform; // 拖一个地图中心或初始位置空物体到这里
 
     // 存储所有玩家的 Pin 经纬度数据
     [UdonSynced] private string playerInfo;
@@ -20,7 +21,7 @@ public class PinDataManager : UdonSharpBehaviour
 
     // 存储每轮的答案
     private DataList[] roundAnswers;
-    [UdonSynced] private string[] serializedRoundAnswers; 
+    [UdonSynced] private string[] serializedRoundAnswers = new string[0]; 
     public TextMeshProUGUI gameDataStoreageText;
 
     [UdonSynced]
@@ -51,10 +52,17 @@ public class PinDataManager : UdonSharpBehaviour
     };
     [UdonSynced] private string serializedData; // 用于同步的 JSON 字符串
     //private DataDictionary playerData; // 存储玩家的经纬度信息
-
+     // 用 DataDictionary 存储玩家分数
+    
+    DataDictionary playerTotalScores = new DataDictionary();
 
     private void Start()
     {
+
+        //if (serializedRoundAnswers == null)
+        //{
+        //    serializedRoundAnswers = new string[0]; // ✅ 初始化
+        //}
         Debug.Log("[PinDataManager] 初始化完成");
 
 
@@ -75,8 +83,6 @@ public class PinDataManager : UdonSharpBehaviour
         //        return;
         //    }
         //}
-
-        Debug.Log("[PinDataManager] 初始化完成");
     }
 
 
@@ -295,95 +301,95 @@ public class PinDataManager : UdonSharpBehaviour
 
     // PinDataManager.cs
 
-    public void CalculateFinalScores(GameManager gameManager)
-    {
-        StringBuilder finalScores = new StringBuilder("Final Scores:\n");
+    //public void CalculateFinalScores(GameManager gameManager)
+    //{
+    //    StringBuilder finalScores = new StringBuilder("Final Scores:\n");
 
-        // 用 DataDictionary 存储玩家分数
-        DataDictionary playerTotalScores = new DataDictionary();
+    //    // 用 DataDictionary 存储玩家分数
+    //    playerTotalScores = new DataDictionary();
 
-        // 遍历每一轮
-        for (int round = 0; round < totalRounds; round++)
-        {
-            // 检查这个回合是否已经完成（有没有存储玩家答案）
-            if (roundAnswers[round] == null || roundAnswers[round].Count == 0)
-            {
-                Debug.LogWarning($"[PinDataManager] 回合 {round} 没有有效的玩家答案数据，跳过计分");
-                continue;
-            }
+    //    // 遍历每一轮
+    //    for (int round = 0; round < totalRounds; round++)
+    //    {
+    //        // 检查这个回合是否已经完成（有没有存储玩家答案）
+    //        if (roundAnswers[round] == null || roundAnswers[round].Count == 0)
+    //        {
+    //            Debug.LogWarning($"[PinDataManager] 回合 {round} 没有有效的玩家答案数据，跳过计分");
+    //            continue;
+    //        }
 
-            // 获取该轮使用的图片索引
-            int imageIndex = round < gameManager.roundImageIndices.Length ?
-                             gameManager.roundImageIndices[round] :
-                             gameManager.GetCurrentImageIndex();
+    //        // 获取该轮使用的图片索引
+    //        int imageIndex = round < gameManager.roundImageIndices.Length ?
+    //                         gameManager.roundImageIndices[round] :
+    //                         gameManager.GetCurrentImageIndex();
 
-            // 如果该回合没有记录图片索引或索引无效，使用默认索引(0)或跳过
-            if (imageIndex < 0 || imageIndex >= gameManager.GetImageUrlsLength())
-            {
-                Debug.LogWarning($"[PinDataManager] 回合 {round} 的图片索引 {imageIndex} 无效，使用默认索引0");
-                imageIndex = 0; // 使用第一张图片作为默认
-            }
+    //        // 如果该回合没有记录图片索引或索引无效，使用默认索引(0)或跳过
+    //        if (imageIndex < 0 || imageIndex >= gameManager.GetImageUrlsLength())
+    //        {
+    //            Debug.LogWarning($"[PinDataManager] 回合 {round} 的图片索引 {imageIndex} 无效，使用默认索引0");
+    //            imageIndex = 0; // 使用第一张图片作为默认
+    //        }
 
-            // 获取对应图片的正确答案位置
-            Vector2 correctAnswer = gameManager.locationData.GetLocationLatLong(imageIndex);
-            Debug.Log($"[PinDataManager] 计算回合 {round} 的最终得分, 图片索引: {imageIndex}, 正确答案: {correctAnswer}");
+    //        // 获取对应图片的正确答案位置
+    //        Vector2 correctAnswer = gameManager.locationData.GetLocationLatLong(imageIndex);
+    //        Debug.Log($"[PinDataManager] 计算回合 {round} 的最终得分, 图片索引: {imageIndex}, 正确答案: {correctAnswer}");
 
-            // 计算每个玩家在这轮的得分
-            for (int i = 0; i < roundAnswers[round].Count; i++)
-            {
-                if (roundAnswers[round].TryGetValue(i, TokenType.DataDictionary, out DataToken dataToken))
-                {
-                    DataDictionary playerAnswer = dataToken.DataDictionary;
-                    if (playerAnswer.TryGetValue("id", TokenType.Int, out DataToken idToken) &&
-                        playerAnswer.TryGetValue("longitude", TokenType.Float, out DataToken longToken) &&
-                        playerAnswer.TryGetValue("latitude", TokenType.Float, out DataToken latToken))
-                    {
-                        int playerId = idToken.Int;
-                        Vector2 playerGuess = new Vector2(latToken.Float, longToken.Float);
+    //        // 计算每个玩家在这轮的得分
+    //        for (int i = 0; i < roundAnswers[round].Count; i++)
+    //        {
+    //            if (roundAnswers[round].TryGetValue(i, TokenType.DataDictionary, out DataToken dataToken))
+    //            {
+    //                DataDictionary playerAnswer = dataToken.DataDictionary;
+    //                if (playerAnswer.TryGetValue("id", TokenType.Int, out DataToken idToken) &&
+    //                    playerAnswer.TryGetValue("longitude", TokenType.Float, out DataToken longToken) &&
+    //                    playerAnswer.TryGetValue("latitude", TokenType.Float, out DataToken latToken))
+    //                {
+    //                    int playerId = idToken.Int;
+    //                    Vector2 playerGuess = new Vector2(latToken.Float, longToken.Float);
 
-                        // 获取放置状态，如果不存在则默认为 false
-                        bool isPlaced = false;
-                        if (playerAnswer.TryGetValue("isPlaced", TokenType.Boolean, out DataToken placedToken))
-                        {
-                            isPlaced = placedToken.Boolean;
-                        }
+    //                    // 获取放置状态，如果不存在则默认为 false
+    //                    bool isPlaced = false;
+    //                    if (playerAnswer.TryGetValue("isPlaced", TokenType.Boolean, out DataToken placedToken))
+    //                    {
+    //                        isPlaced = placedToken.Boolean;
+    //                    }
 
-                        // 记录详细的调试信息
-                        Debug.Log($"[PinDataManager] 回合 {round}, 玩家 {playerId} 猜测: {playerGuess}, 正确答案: {correctAnswer}, 已放置: {isPlaced}");
+    //                    // 记录详细的调试信息
+    //                    Debug.Log($"[PinDataManager] 回合 {round}, 玩家 {playerId} 猜测: {playerGuess}, 正确答案: {correctAnswer}, 已放置: {isPlaced}");
 
-                        // 计算得分，考虑 pin 是否被放置
-                        float score = CalculateScore(correctAnswer, playerGuess, isPlaced);
+    //                    // 计算得分，考虑 pin 是否被放置
+    //                    float score = CalculateScore(correctAnswer, playerGuess, isPlaced);
 
-                        // 累加到玩家总分
-                        float currentScore = 0;
-                        string playerKey = $"player_{playerId}";
+    //                    // 累加到玩家总分
+    //                    float currentScore = 0;
+    //                    string playerKey = $"player_{playerId}";
 
-                        if (playerTotalScores.TryGetValue(playerKey, TokenType.Float, out DataToken currentScoreToken))
-                        {
-                            currentScore = currentScoreToken.Float;
-                        }
+    //                    if (playerTotalScores.TryGetValue(playerKey, TokenType.Float, out DataToken currentScoreToken))
+    //                    {
+    //                        currentScore = currentScoreToken.Float;
+    //                    }
 
-                        playerTotalScores.SetValue(playerKey, currentScore + score);
-                    }
-                }
-            }
-        }
+    //                    playerTotalScores.SetValue(playerKey, currentScore + score);
+    //                }
+    //            }
+    //        }
+    //    }
 
-        // 构建最终得分字符串
-        DataList playerKeys = playerTotalScores.GetKeys();
-        for (int i = 0; i < playerKeys.Count; i++)
-        {
-            string playerKey = playerKeys[i].String;
-            if (playerTotalScores.TryGetValue(playerKey, TokenType.Float, out DataToken scoreToken))
-            {
-                int playerId = int.Parse(playerKey.Split('_')[1]);
-                finalScores.AppendLine($"Player {playerId}: {scoreToken.Float:F0}");
-            }
-        }
+    //    // 构建最终得分字符串
+    //    DataList playerKeys = playerTotalScores.GetKeys();
+    //    for (int i = 0; i < playerKeys.Count; i++)
+    //    {
+    //        string playerKey = playerKeys[i].String;
+    //        if (playerTotalScores.TryGetValue(playerKey, TokenType.Float, out DataToken scoreToken))
+    //        {
+    //            int playerId = int.Parse(playerKey.Split('_')[1]);
+    //            finalScores.AppendLine($"Player {playerId}: {scoreToken.Float:F0}");
+    //        }
+    //    }
 
-        // 更新UI显示
-        roundScoresText.text = finalScores.ToString();
-    }
+    //    // 更新UI显示
+    //    roundScoresText.text = finalScores.ToString();
+    //}
 
     //public void CalculateFinalScores(GameManager gameManager)
     //{
@@ -460,9 +466,9 @@ public class PinDataManager : UdonSharpBehaviour
     //}
 
     // 计算每一轮所有玩家的得分
-    public void CalculateRoundScores(GameManager gameManager, int roundIndex)
+    public void UpdateScoresAndDisplayLeaderboard(GameManager gameManager, int roundIndex)
     {
-        StringBuilder roundScores = new StringBuilder($"Round {roundIndex + 1} Scores:\n");
+        StringBuilder roundScores = new StringBuilder("");
 
         // 获取图片索引（用于调试）
         int imageIndex = gameManager.roundImageIndices[roundIndex];
@@ -495,16 +501,27 @@ public class PinDataManager : UdonSharpBehaviour
 
                         // 计算得分时考虑放置状态
                         float score = CalculateScore(correctAnswer, playerGuess, isPlaced);
-                        Debug.Log($"[PinDataManager] Player {playerId} guess: {playerGuess},correctAnswer: {correctAnswer}, isPlaced: {isPlaced}, score: {score}");
-                        // 添加到字符串
-                        roundScores.AppendLine($"Player {playerId}: {score:F0}{(!isPlaced ? " (Not placed)" : "")}");
+
+                        //Debug.Log($"[PinDataManager] Player {playerId} guess: {playerGuess},correctAnswer: {correctAnswer}, isPlaced: {isPlaced}, score: {score}");
+                        //// 添加到字符串
+                        //roundScores.AppendLine($"Player {playerId}: {score:F0}{(!isPlaced ? " (Not placed)" : "")}");
+
+                        // 累加到全局总分
+                        string playerKey = $"player_{playerId}";
+                        float currentTotal = 0f;
+                        if (playerTotalScores.TryGetValue(playerKey, TokenType.Float, out DataToken scoreToken))
+                        {
+                            currentTotal = scoreToken.Float;
+                        }
+                        float newTotal = currentTotal + score;
+                        playerTotalScores.SetValue(playerKey, newTotal);
                     }
                 }
             }
         }
 
         // 保存计算结果到同步变量
-        currentRoundScoresText = roundScores.ToString();
+        currentRoundScoresText = GetSortedScoreText();
 
         // 立即更新本地UI
         UpdateRoundScoresUI();
@@ -514,6 +531,63 @@ public class PinDataManager : UdonSharpBehaviour
 
         // 发送网络事件，确保所有客户端都更新 UI
         SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateRoundScoresUI));
+    }
+
+    public string GetSortedScoreText()
+    {
+        StringBuilder sortedScoreText = new StringBuilder("");
+
+        DataList keys = playerTotalScores.GetKeys();
+        int count = keys.Count;
+        if (count == 0) return "No scores yet.";
+
+        string[] keyArray = new string[count];
+        float[] scoreArray = new float[count];
+
+        for (int i = 0; i < count; i++)
+        {
+            string key = keys[i].String;
+            keyArray[i] = key;
+
+            if (playerTotalScores.TryGetValue(key, TokenType.Float, out DataToken token))
+                scoreArray[i] = token.Float;
+            else
+                scoreArray[i] = 0f;
+        }
+
+        // 选择排序：从高到低
+        for (int i = 0; i < count - 1; i++)
+        {
+            for (int j = i + 1; j < count; j++)
+            {
+                if (scoreArray[j] > scoreArray[i])
+                {
+                    float tempScore = scoreArray[i];
+                    scoreArray[i] = scoreArray[j];
+                    scoreArray[j] = tempScore;
+
+                    string tempKey = keyArray[i];
+                    keyArray[i] = keyArray[j];
+                    keyArray[j] = tempKey;
+                }
+            }
+        }
+
+        for (int i = 0; i < count; i++)
+        {
+            int playerId = int.Parse(keyArray[i].Split('_')[1]);
+            VRCPlayerApi player = VRCPlayerApi.GetPlayerById(playerId);
+            string playerName = player != null ? player.displayName : $"Player_{playerId}";
+
+            sortedScoreText.AppendLine($"{i + 1}. {playerName}: {scoreArray[i]:F0}");
+        }
+
+        return sortedScoreText.ToString();
+    }
+
+    public void ResetPlayerTotalScores()
+    {
+        playerTotalScores = new DataDictionary(); // 清空
     }
 
     // 添加一个 UI 更新方法，可以被网络事件调用
@@ -715,6 +789,46 @@ public class PinDataManager : UdonSharpBehaviour
         //UpdatePinVisibility();
     }
 
+    public void ResetAllPinsToOrigin()
+    {
+        Debug.Log("[PinDataManager] 正在归位所有Pin...");
 
+        if (objectAssigner == null)
+        {
+            Debug.LogWarning("[PinDataManager] objectAssigner 未设置，无法归位Pins");
+            return;
+        }
 
-}
+        Component[] activePoolObjects = objectAssigner._GetActivePoolObjects();
+        if (activePoolObjects == null)
+        {
+            Debug.LogWarning("[PinDataManager] 没有获取到活跃的Pool对象");
+            return;
+        }
+
+        foreach (Component poolObject in activePoolObjects)
+        {
+            if (poolObject == null) continue;
+
+            GameObject pin = poolObject.gameObject;
+            if (resetTargetTransform != null)
+            {
+                pin.transform.position = resetTargetTransform.position;
+                pin.transform.rotation = resetTargetTransform.rotation;
+            }
+            else
+            {
+                pin.transform.position = Vector3.zero;
+                pin.transform.rotation = Quaternion.identity;
+            }
+        }
+
+        Debug.Log($"[PinDataManager] 已归位 {activePoolObjects.Length} 个Pin");
+    }
+
+    public void ResetAllPinsToOriginNetwork()
+    {
+        // 发送网络事件，确保所有客户端都归位
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(ResetAllPinsToOrigin));
+    }
+    }
