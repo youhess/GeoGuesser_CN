@@ -90,8 +90,6 @@ public class PinDataManager : UdonSharpBehaviour
     public void SetShowAllPins()
     {
             //if (!Networking.IsOwner(gameObject)) return;
-  
-            Debug.Log($"[PinDataManager] 设置所有Pin可见");
             showAllPins = true;
         // 立即在本地执行可见性更新
         //RequestSerialization();  // 会触发其他客户端的 OnDeserialization
@@ -103,7 +101,6 @@ public class PinDataManager : UdonSharpBehaviour
     public void SetHideOtherPins()
     {
         //if (!Networking.IsOwner(gameObject)) return;
-        Debug.Log($"[PinDataManager] 设置所有Pin不可见");
         showAllPins = false;
         // 立即在本地执行可见性更新
         //RequestSerialization();  // 会触发其他客户端的 OnDeserialization
@@ -114,8 +111,6 @@ public class PinDataManager : UdonSharpBehaviour
 
     public void InitializeRounds(int rounds)
     {
-        Debug.Log($"[PinDataManager] 开始初始化回合数: {rounds}");
-
         totalRounds = rounds;
         roundAnswers = new DataList[totalRounds];
         serializedRoundAnswers = new string[totalRounds];
@@ -125,7 +120,6 @@ public class PinDataManager : UdonSharpBehaviour
         {
             roundAnswers[i] = new DataList();
             serializedRoundAnswers[i] = "";
-            Debug.Log($"[PinDataManager] 初始化回合 {i}");
         }
 
         // 同步修改，确保其他客户端也收到更新
@@ -144,8 +138,6 @@ public class PinDataManager : UdonSharpBehaviour
     // 更新玩家的 Pin 经纬度数据 
     public void UpdatePlayerPinData(int playerId, Vector2 pinCoordinates, bool isPlacedOnMap)
     {
-        Debug.Log($"UpdatePlayerPinData: {playerId}, {pinCoordinates}, placed: {isPlacedOnMap}");
-
         bool playerFound = false;
 
         // 遍历 dataList 查找是否存在相同的 playerId
@@ -609,9 +601,6 @@ public class PinDataManager : UdonSharpBehaviour
 
         // Calculate distance (using Euclidean distance)
         float distance = Vector2.Distance(correctAnswer, playerGuess);
-
-        Debug.Log($"[PinDataManager] Distance: {distance}");
-
         // More sensitive score calculation
         float maxScore = 100f;
         float maxDistance = 15f; // Reduced from 1000 to make scoring more sensitive to distance
@@ -655,9 +644,6 @@ public class PinDataManager : UdonSharpBehaviour
         // 获取所有活动的池对象
         Component[] activePoolObjects = objectAssigner._GetActivePoolObjects();
         // 显示Pool中的所有对象
-        // 添加日志显示长度
-        Debug.Log($"[PinDataManager] 活动池对象数量: {activePoolObjects.Length}");
-
         if (activePoolObjects == null)
         {
             Debug.LogError("[PinDataManager] 无法获取活动的池对象！");
@@ -705,8 +691,6 @@ public class PinDataManager : UdonSharpBehaviour
                 canvasGroup.blocksRaycasts = (showAllPins || isOwner);
             }
         }
-
-        Debug.Log($"[PinDataManager] 更新了 {activePoolObjects.Length} 个Pin的可见性, showAllPins: {showAllPins}");
     }
 
     // 在数据反序列化前调用
@@ -722,7 +706,6 @@ public class PinDataManager : UdonSharpBehaviour
         if (roundAnswers == null || serializedRoundAnswers == null ||
         roundAnswers.Length != totalRounds || serializedRoundAnswers.Length != totalRounds)
         {
-            Debug.Log("Initializing roundAnswers and serializedRoundAnswers arrays");
             roundAnswers = new DataList[totalRounds];
             serializedRoundAnswers = new string[totalRounds];
             for (int i = 0; i < totalRounds; i++)
@@ -763,7 +746,6 @@ public class PinDataManager : UdonSharpBehaviour
         // 反序列化每一回合的数据
         for (int i = 0; i < totalRounds; i++)
         {
-            Debug.Log($"[PinDataManager] OnDeserialization - 访问索引 {i}，数组长度: {serializedRoundAnswers.Length}, totalRounds: {totalRounds}");
 
             if (i < serializedRoundAnswers.Length && !string.IsNullOrEmpty(serializedRoundAnswers[i]))
             {
@@ -772,7 +754,6 @@ public class PinDataManager : UdonSharpBehaviour
                     if (dataToken.TokenType == TokenType.DataList)
                     {
                         roundAnswers[i] = dataToken.DataList;
-                        Debug.Log($"[PinDataManager] Successfully deserialized round {i} data");
                     }
                     else
                     {
@@ -791,8 +772,6 @@ public class PinDataManager : UdonSharpBehaviour
 
     public void ResetAllPinsToOrigin()
     {
-        Debug.Log("[PinDataManager] 正在归位所有Pin...");
-
         if (objectAssigner == null)
         {
             Debug.LogWarning("[PinDataManager] objectAssigner 未设置，无法归位Pins");
@@ -822,8 +801,6 @@ public class PinDataManager : UdonSharpBehaviour
                 pin.transform.rotation = Quaternion.identity;
             }
         }
-
-        Debug.Log($"[PinDataManager] 已归位 {activePoolObjects.Length} 个Pin");
     }
 
     public void ResetAllPinsToOriginNetwork()

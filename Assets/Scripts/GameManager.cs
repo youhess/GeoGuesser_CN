@@ -22,7 +22,7 @@ public class GameManager : UdonSharpBehaviour
     private GameObject currentPanorama;
     public GameObject answerPinPrefab; // 这是 Prefab，不是直接的 GameObject
     private GameObject anwserPinInstance; // 存储实例化的对象
-     // 改为使用 ObjectAssigner 而不是 ObjectPool
+                                          // 改为使用 ObjectAssigner 而不是 ObjectPool
     public CyanPlayerObjectAssigner objectAssigner;
 
 
@@ -245,7 +245,152 @@ public class GameManager : UdonSharpBehaviour
     new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/204.jpg"),
     new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/205.jpg"),
     new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/206.jpg"),
-    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/207.jpg")
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/207.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/208.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/209.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/210.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/211.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/212.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/213.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/214.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/215.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/216.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/217.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/218.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/219.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/220.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/221.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/222.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/223.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/224.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/225.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/226.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/227.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/228.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/229.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/230.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/231.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/232.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/233.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/234.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/235.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/236.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/237.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/238.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/239.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/240.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/241.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/242.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/243.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/244.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/245.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/246.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/247.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/248.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/249.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/250.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/251.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/252.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/253.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/254.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/255.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/256.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/257.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/258.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/259.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/260.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/261.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/262.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/263.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/264.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/265.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/266.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/267.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/268.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/269.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/270.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/271.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/272.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/273.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/274.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/275.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/276.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/277.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/278.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/279.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/280.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/281.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/282.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/283.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/284.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/285.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/286.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/287.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/288.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/289.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/290.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/291.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/292.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/293.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/294.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/295.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/296.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/297.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/298.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/299.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/300.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/301.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/302.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/303.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/304.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/305.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/306.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/307.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/308.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/309.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/310.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/311.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/312.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/313.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/314.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/315.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/316.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/317.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/318.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/319.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/320.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/321.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/322.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/323.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/324.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/325.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/326.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/327.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/328.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/329.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/330.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/331.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/332.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/333.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/334.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/335.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/336.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/337.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/338.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/339.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/340.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/341.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/342.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/343.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/344.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/345.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/346.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/347.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/348.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/349.jpg"),
+    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/350.jpg")
+
+    
 };
 
 
@@ -265,6 +410,8 @@ public class GameManager : UdonSharpBehaviour
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI waitingText;
     public GameObject startButton;
+
+    public GameObject worldLocationMap;
 
     // 添加设置面板UI组件
     public GameObject settingsPanel;          // 设置面板的父物体
@@ -303,18 +450,18 @@ public class GameManager : UdonSharpBehaviour
     //public float maxWaitingTime = 30f;
 
     [UdonSynced]
-    public float roundTime = 30f;   // 猜测阶段（默认15秒）
-    [Range(15, 120)]
-    public float minRoundTime = 15f;
-    [Range(15, 120)]
+    public float roundTime = 30f;   // 猜测阶段（默认30秒）
+    [Range(20, 120)]
+    public float minRoundTime = 20f;
+    [Range(20, 120)]
     public float maxRoundTime = 120f;
 
     [UdonSynced]
-    public float revealTime = 20f;  // 揭晓阶段（默认10秒）
-    [Range(15, 60)]
-    public float minRevealTime = 15f;
-    [Range(15, 60)]
-    public float maxRevealTime = 60f;
+    public float revealTime = 30f;  // 揭晓阶段（默认30秒）
+    [Range(20, 120)]
+    public float minRevealTime = 30f;
+    [Range(20, 120)]
+    public float maxRevealTime = 120f;
 
 
     [UdonSynced]
@@ -353,7 +500,7 @@ public class GameManager : UdonSharpBehaviour
     // 在GameManager类中添加一个新变量
     [UdonSynced] // 同步这个变量以确保所有玩家看到相同的图片
     private int[] usedImagesAcrossSessions = new int[0]; // 存储所有会话中使用过的图片索引
-
+    private int maxHistorySize = 100; // 限制历史记录的最大大小
 
     // 本地变量
     private VRCPlayerApi localPlayer;
@@ -516,8 +663,6 @@ public class GameManager : UdonSharpBehaviour
             return;
         }
 
-        //// 记录变量更新前的值
-        Debug.Log($"应用前 - roundTime: {roundTime}, revealTime: {revealTime}, totalRounds: {totalRounds}");
 
         //// 更新变量
         roundTime = roundTimeSlider.value;
@@ -525,19 +670,9 @@ public class GameManager : UdonSharpBehaviour
         totalRounds = (int)totalRoundsSlider.value;
 
         RequestSerialization();
-        // 记录变量更新后的值
-        Debug.Log($"应用后 - roundTime: {roundTime}, revealTime: {revealTime}, totalRounds: {totalRounds}");
 
         //// 先发送网络事件更新非所有者客户端UI
         SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateSettingsUI));
-
-        //// 然后进行序列化
-        //RequestSerialization();
-
-        //// 所有者本地更新UI
-        //UpdateSettingsUI();
-
-        Debug.Log($"设置已应用 - 准备时间: {waitingTime}秒, 猜测时间: {roundTime}秒, 揭晓时间: {revealTime}秒, 总回合数: {totalRounds}");
     }
 
 
@@ -621,7 +756,7 @@ public class GameManager : UdonSharpBehaviour
 
 
     public void StartGame()
-    {  
+    {
         //增加音效
         if (audioSource != null && buttonSound != null)
         {
@@ -652,7 +787,7 @@ public class GameManager : UdonSharpBehaviour
         // 重置分数 对局重新开始
         gameStarted = true;
         gameEnded = false;  // ✅ 准备新一轮，标记为“未结束”
-        CloseSettingPanel();        
+        CloseSettingPanel();
         SendCustomNetworkEvent(NetworkEventTarget.All, nameof(CloseSettingPanel));
 
         currentRound = 0;
@@ -669,7 +804,7 @@ public class GameManager : UdonSharpBehaviour
             waitingText.text = "";
         }
 
-      
+
         waitingText.text = "Preparing！";
 
         //RequestSerialization();
@@ -773,7 +908,7 @@ public class GameManager : UdonSharpBehaviour
         RequestSerialization();
         waitingText.text = $"猜测时间！{roundTime} 秒";
 
-        
+
     }
 
     public void PlayBeepVoice()
@@ -787,7 +922,7 @@ public class GameManager : UdonSharpBehaviour
 
     private void RevealAnswer()
     {
-      
+
         if (!Networking.IsOwner(gameObject)) return;
 
         // 在显示答案之前，保存当前回合的所有玩家答案，然后计算所有玩家的得分
@@ -795,7 +930,7 @@ public class GameManager : UdonSharpBehaviour
         // 计算当前回合的得分并显示
         pinDataManager.UpdateScoresAndDisplayLeaderboard(this, currentRound);
 
-       
+
 
         // 设置倒计时和阶段
         countdownPhase = 3;
@@ -827,7 +962,7 @@ public class GameManager : UdonSharpBehaviour
     public void UpdateAnswerPinAndLineAndPhaseUI()
     {
 
-          //增加音效
+        //增加音效
         if (audioSource != null && dingSound != null)
         {
             audioSource.PlayOneShot(dingSound);
@@ -859,26 +994,89 @@ public class GameManager : UdonSharpBehaviour
         SendCustomNetworkEvent(NetworkEventTarget.All, nameof(PreloadImageForNextRound));
     }
 
-    // 新增方法：获取不重复的随机图片索引
-    private int GetUniqueRandomImageIndex()
+    // 修改AddIndexToUsedHistory方法
+    private void AddIndexToUsedHistory(int newIndex)
     {
-        // 如果这是第一轮或者没有记录任何索引，直接返回随机索引
-        if (currentRound < 0 || roundImageIndices == null || roundImageIndices.Length == 0)
+        if (!Networking.IsOwner(gameObject)) return;
+
+        // 检查是否已经在历史记录中
+        bool alreadyExists = false;
+        for (int i = 0; i < usedImagesAcrossSessions.Length; i++)
         {
-            return UnityEngine.Random.Range(0, imageUrls.Length);
+            if (usedImagesAcrossSessions[i] == newIndex)
+            {
+                alreadyExists = true;
+                break;
+            }
         }
 
-        int newIndex;
-        int maxAttempts = 10; // 防止无限循环
+        if (alreadyExists) return; // 如果已存在，不再添加
+
+        // 如果历史记录已达到最大容量，移除最早的记录
+        if (usedImagesAcrossSessions.Length >= maxHistorySize)
+        {
+            int[] newHistory = new int[maxHistorySize];
+
+            // 复制除了第一个以外的所有旧记录
+            for (int i = 1; i < usedImagesAcrossSessions.Length && i <= maxHistorySize - 1; i++)
+            {
+                newHistory[i - 1] = usedImagesAcrossSessions[i];
+            }
+
+            // 添加新索引到末尾
+            newHistory[maxHistorySize - 1] = newIndex;
+
+            usedImagesAcrossSessions = newHistory;
+        }
+        else
+        {
+            // 如果未达到最大容量，正常添加
+            int[] newHistory = new int[usedImagesAcrossSessions.Length + 1];
+
+            // 复制旧数据
+            for (int i = 0; i < usedImagesAcrossSessions.Length; i++)
+            {
+                newHistory[i] = usedImagesAcrossSessions[i];
+            }
+
+            // 添加新索引
+            newHistory[usedImagesAcrossSessions.Length] = newIndex;
+
+            usedImagesAcrossSessions = newHistory;
+        }
+
+        RequestSerialization();
+    }
+
+    // 简化GetUniqueRandomImageIndex()方法
+    private int GetUniqueRandomImageIndex()
+    {
+        // 如果我们已经使用了接近所有图片，可以考虑重置
+        if (usedImagesAcrossSessions.Length >= imageUrls.Length * 0.8f)
+        {
+            // 只保留最近使用的一半图片
+            int[] recentHistory = new int[usedImagesAcrossSessions.Length / 2];
+            for (int i = usedImagesAcrossSessions.Length / 2; i < usedImagesAcrossSessions.Length; i++)
+            {
+                recentHistory[i - usedImagesAcrossSessions.Length / 2] = usedImagesAcrossSessions[i];
+            }
+            usedImagesAcrossSessions = recentHistory;
+            RequestSerialization();
+        }
+
+        int maxAttempts = 20;
         int attempts = 0;
+        int newIndex;
 
         do
         {
             newIndex = UnityEngine.Random.Range(0, imageUrls.Length);
             attempts++;
 
-            // 检查是否已经在之前的回合中使用过这个索引
+            // 检查是否已使用过
             bool isDuplicate = false;
+
+            // 检查当前回合
             for (int i = 0; i <= currentRound; i++)
             {
                 if (i < roundImageIndices.Length && roundImageIndices[i] == newIndex)
@@ -888,18 +1086,32 @@ public class GameManager : UdonSharpBehaviour
                 }
             }
 
-            // 如果不是重复的或者尝试次数已达上限，退出循环
+            // 检查历史记录
+            if (!isDuplicate && usedImagesAcrossSessions != null)
+            {
+                for (int i = 0; i < usedImagesAcrossSessions.Length; i++)
+                {
+                    if (usedImagesAcrossSessions[i] == newIndex)
+                    {
+                        isDuplicate = true;
+                        break;
+                    }
+                }
+            }
+
+            // 如果找到未使用过的，或者已经尝试足够多次，就接受这个索引
             if (!isDuplicate || attempts >= maxAttempts)
             {
-                // 如果达到尝试上限但仍然重复，可以记录一条日志
                 if (isDuplicate && attempts >= maxAttempts)
                 {
-                    Debug.Log($"[GameManager] 达到最大尝试次数，接受重复索引: {newIndex}");
+                    Debug.Log($"[GameManager] 达到最大尝试次数({maxAttempts})，接受重复索引: {newIndex}");
                 }
                 break;
             }
         } while (true);
 
+        // 将新索引添加到历史记录
+        AddIndexToUsedHistory(newIndex);
         return newIndex;
     }
 
@@ -907,8 +1119,6 @@ public class GameManager : UdonSharpBehaviour
     {
         if (nextImageIndex >= 0 && nextImageIndex < imageUrls.Length)
         {
-            Debug.Log($"[GameManager] 预加载下一轮图片索引: {nextImageIndex}");
-
             // 检查是否已缓存该图片
             if (downloadedTextures[nextImageIndex] != null)
             {
@@ -1019,8 +1229,8 @@ public class GameManager : UdonSharpBehaviour
     //更新地点信息
     public void UpdateLocationInfo()
     {
-       string cnname = locationData.GetLocationCnName(currentImageIndex);
-       string enname = locationData.GetLocationEnName(currentImageIndex);
+        string cnname = locationData.GetLocationCnName(currentImageIndex);
+        string enname = locationData.GetLocationEnName(currentImageIndex);
         LocationText.text = $"{cnname} \n ({enname})";
     }
 
@@ -1035,45 +1245,45 @@ public class GameManager : UdonSharpBehaviour
 
     // 添加更新答案Pin的方法
     public void UpdateAnswerPinAll()
-{
+    {
 
-    Vector2 answerPosition = locationData.GetLocationLatLong(currentImageIndex); // currentImageIndex是当前回合的图片索引
+        Vector2 answerPosition = locationData.GetLocationLatLong(currentImageIndex); // currentImageIndex是当前回合的图片索引
 
         // 计算世界空间位置
-    Vector3[] corners = new Vector3[4];
-    worldMapRectTransform.GetWorldCorners(corners);
-    Vector3 bottomLeft = corners[0];
-    Vector3 topRight = corners[2];
-    Vector3 mapSize = topRight - bottomLeft;
-    
-    // 计算Pin位置
-    Vector2 normalizedPos = latLongMapper.LatLongToUICoords(answerPosition);
-    normalizedPos.x = (normalizedPos.x + worldMapRectTransform.rect.width * 0.5f) / worldMapRectTransform.rect.width;
-    normalizedPos.y = (normalizedPos.y + worldMapRectTransform.rect.height * 0.5f) / worldMapRectTransform.rect.height;
-    
-    Vector3 worldPos = bottomLeft + new Vector3(
-        mapSize.x * normalizedPos.x,
-        0.4f,
-        mapSize.z * normalizedPos.y
-    );
+        Vector3[] corners = new Vector3[4];
+        worldMapRectTransform.GetWorldCorners(corners);
+        Vector3 bottomLeft = corners[0];
+        Vector3 topRight = corners[2];
+        Vector3 mapSize = topRight - bottomLeft;
 
-    // 确保Pin实例存在
-    if (anwserPinInstance == null)
-    {
-        anwserPinInstance = VRCInstantiate(answerPinPrefab);
-        anwserPinInstance.transform.SetParent(mapTableTransform.parent, false);
-        
-        float mapDiagonal = (corners[2] - corners[0]).magnitude;
-        float scaleFactor = mapDiagonal * 0.01f;
-        anwserPinInstance.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
-        
-        Rigidbody rb = anwserPinInstance.GetComponent<Rigidbody>();
-        if (rb != null)
+        // 计算Pin位置
+        Vector2 normalizedPos = latLongMapper.LatLongToUICoords(answerPosition);
+        normalizedPos.x = (normalizedPos.x + worldMapRectTransform.rect.width * 0.5f) / worldMapRectTransform.rect.width;
+        normalizedPos.y = (normalizedPos.y + worldMapRectTransform.rect.height * 0.5f) / worldMapRectTransform.rect.height;
+
+        Vector3 worldPos = bottomLeft + new Vector3(
+            mapSize.x * normalizedPos.x,
+            0.4f,
+            mapSize.z * normalizedPos.y
+        );
+
+        // 确保Pin实例存在
+        if (anwserPinInstance == null)
         {
-            rb.isKinematic = true;
-            rb.useGravity = false;
+            anwserPinInstance = VRCInstantiate(answerPinPrefab);
+            anwserPinInstance.transform.SetParent(mapTableTransform.parent, false);
+
+            float mapDiagonal = (corners[2] - corners[0]).magnitude;
+            float scaleFactor = mapDiagonal * 0.01f;
+            anwserPinInstance.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
+
+            Rigidbody rb = anwserPinInstance.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.isKinematic = true;
+                rb.useGravity = false;
+            }
         }
-    }
 
         // 验证实例化是否成功
         if (anwserPinInstance == null)
@@ -1084,13 +1294,13 @@ public class GameManager : UdonSharpBehaviour
 
         // 更新Pin位置和显示
         anwserPinInstance.transform.position = worldPos;
-    anwserPinInstance.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
-    anwserPinInstance.SetActive(true);
-    
-    // 更新UI
-    //waitingText.text = $"答案揭晓！{revealTime} 秒";
-    UpdateResultsUI(answerPosition);
-}
+        anwserPinInstance.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
+        anwserPinInstance.SetActive(true);
+
+        // 更新UI
+        //waitingText.text = $"答案揭晓！{revealTime} 秒";
+        UpdateResultsUI(answerPosition);
+    }
 
     private void StartNewRound()
     {
@@ -1108,7 +1318,7 @@ public class GameManager : UdonSharpBehaviour
         if (currentRound >= totalRounds - 1)
         {
             EndGame();
-            return;                 
+            return;
         }
 
         // 进入新回合
@@ -1423,11 +1633,11 @@ public class GameManager : UdonSharpBehaviour
     }
 
 
-    public override void OnDeserialization() 
+    public override void OnDeserialization()
     {
         Debug.Log($"[GameManager] OnDeserialization - currentImageIndex: {currentImageIndex}, Phase: {countdownPhase}");
 
-  
+
         // Update the UI to reflect any changes in settings
         UpdateSettingsUI();
 
@@ -1456,8 +1666,8 @@ public class GameManager : UdonSharpBehaviour
             PreloadImageForNextRound();
         }
 
-  
-      
+
+
 
     }
 
@@ -1534,4 +1744,26 @@ public class GameManager : UdonSharpBehaviour
 
     }
 
+    public void OnCloseWorldLocationMap()
+    {
+        //增加音效
+        if (audioSource != null && buttonSound != null)
+        {
+            audioSource.PlayOneShot(buttonSound);
+        }
+
+        if (worldLocationMap != null)
+            worldLocationMap.SetActive(false);
+    }
+    public void OnOpenWorldLocationMap()
+    {
+        //增加音效
+        if (audioSource != null && buttonSound != null)
+        {
+            audioSource.PlayOneShot(buttonSound);
+        }
+
+        if (worldLocationMap != null)
+            worldLocationMap.SetActive(true);
+    }
 }

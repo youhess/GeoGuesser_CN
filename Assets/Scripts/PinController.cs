@@ -128,7 +128,7 @@ public class PinController : UdonSharpBehaviour
         if (mapRectTransform == null)
         {
             //mapRectTransform = transform.root.GetComponentInChildren<RectTransform>(true);
-            mapRectTransform = GameObject.Find("WorldMap").GetComponent<RectTransform>();
+            mapRectTransform = GameObject.Find("WorldSatelliteMap").GetComponent<RectTransform>();
 
             if (mapRectTransform == null)
             {
