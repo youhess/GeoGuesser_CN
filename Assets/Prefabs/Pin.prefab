@@ -480,7 +480,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 786bd40e9d432c14ea87e23dbd5783dd, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -643,7 +643,8 @@ MonoBehaviour:
   allowManipulationWhenEquipped: 0
   orientation: 1
   AutoHold: 2
-  InteractionText: Hold uppppppppppppp
+  InteractionText: "\u628A\u5B83\u63D2\u5230\u4F60\u731C\u6D4B\u7684\u5730\u70B9\u5427\uFF01Stick
+    it in the place you guess!"
   UseText: Use
   useEventBroadcastType: 0
   UseDownEventName: 
@@ -655,7 +656,7 @@ MonoBehaviour:
   ThrowVelocityBoostScale: 1
   currentlyHeldBy: {fileID: 0}
   pickupable: 0
-  proximity: 2
+  proximity: 4
 --- !u!136 &2381384226439689767
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -1017,7 +1018,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 786bd40e9d432c14ea87e23dbd5783dd, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

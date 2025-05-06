@@ -189,7 +189,7 @@ public class PinController : UdonSharpBehaviour
             startDebugInfo += "错误: pickup组件为null";
         }
 
-        Debug.Log(startDebugInfo);
+        //Debug.Log(startDebugInfo);
         debugText.text = startDebugInfo;
 
         UpdateOwnerName();
@@ -256,7 +256,7 @@ public class PinController : UdonSharpBehaviour
             audioSource.PlayOneShot(dropSound);
         }
 
-        //Debug.Log("OnDrop");
+        ////Debug.Log("OnDrop");
         _isPickedUp = false;
         
         // 重置物理属性
@@ -283,7 +283,7 @@ public class PinController : UdonSharpBehaviour
         //int visibleLayer = 23; // 可见
         //int invisibleLayer = 24; // 不可见
 
-        //Debug.Log($"[Pin] 设置 `Pin` Layer 为: {(isOwner ? "PinLayer" : "InvisiblePinLayer")}");
+        ////Debug.Log($"[Pin] 设置 `Pin` Layer 为: {(isOwner ? "PinLayer" : "InvisiblePinLayer")}");
 
         //gameObject.layer = isOwner ? visibleLayer : invisibleLayer;
 
@@ -363,19 +363,19 @@ public class PinController : UdonSharpBehaviour
     public void SetAnswerPin(GameObject answerPin)
     {
         // 添加详细的日志
-        Debug.Log($"[Pin] SetAnswerPin 被调用 - answerPin: {(answerPin != null ? answerPin.name : "null")}");
+        //Debug.Log($"[Pin] SetAnswerPin 被调用 - answerPin: {(answerPin != null ? answerPin.name : "null")}");
 
         answerPinObject = answerPin;
 
         // 验证设置是否成功
-        Debug.Log($"[Pin] 设置后的 answerPinObject: {(answerPinObject != null ? answerPinObject.name : "null")}");
+        //Debug.Log($"[Pin] 设置后的 answerPinObject: {(answerPinObject != null ? answerPinObject.name : "null")}");
     }
 
     // 修改 ShowLineToAnswer 方法，让它直接更新连线位置
     public void ShowLineToAnswer(bool show)
     {
         // 这个确实激活的
-        Debug.Log($"[Pin] ShowLineToAnswer: {show}");
+        //Debug.Log($"[Pin] ShowLineToAnswer: {show}");
         showLineToAnswer = show;
 
         // 先检查LineRenderer是否存在
@@ -399,9 +399,9 @@ public class PinController : UdonSharpBehaviour
         {
             // 只在状态变化时更新一次位置
             lineRenderer.enabled = true;
-            Debug.Log($"[Pin] 更新连线位置");
-            Debug.Log($"[Pin] Pin位置: {transform.position}");
-            Debug.Log($"[Pin] 答案Pin位置: {answerPinObject.transform.position}");
+            //Debug.Log($"[Pin] 更新连线位置");
+            //Debug.Log($"[Pin] Pin位置: {transform.position}");
+            //Debug.Log($"[Pin] 答案Pin位置: {answerPinObject.transform.position}");
             UpdateLinePosition();
             //lineRenderer.SetPosition(0, transform.position);
             //lineRenderer.SetPosition(1, answerPinObject.transform.position);
@@ -452,7 +452,7 @@ public class PinController : UdonSharpBehaviour
         else
         {
             // 如果不在地图范围内，重置到原始位置
-            Debug.Log("不在地图范围内，重置到原始位置"); 
+            //Debug.Log("不在地图范围内，重置到原始位置"); 
             isPlacedOnMap = false; // 标记为未放置
             ResetPosition();
            
@@ -461,15 +461,15 @@ public class PinController : UdonSharpBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        Debug.Log($"碰撞发生于：{collision.gameObject.name}");
+        //Debug.Log($"碰撞发生于：{collision.gameObject.name}");
         if (collision.gameObject.name == "MapTable") // 替代 CompareTag
         {
-            Debug.Log($"与MapTable碰撞啦！！！");
+            //Debug.Log($"与MapTable碰撞啦！！！");
             HandlePinPlacement();　// 处理放置
         }
         else {
             // 如果碰到非地图物体，将标记设为未放置状态
-            Debug.Log($"与非地图物体 {collision.gameObject.name} 碰撞，重置放置状态！");
+            //Debug.Log($"与非地图物体 {collision.gameObject.name} 碰撞，重置放置状态！");
             isPlacedOnMap = false;
 
             // 如果需要，可以更新UI和数据
@@ -569,7 +569,7 @@ public class PinController : UdonSharpBehaviour
             debugInfo += "错误: pickup组件为null";
         }
 
-        Debug.Log(debugInfo);
+        //Debug.Log(debugInfo);
 
         //debugText.text = debugInfo;
 
@@ -613,12 +613,12 @@ public class PinController : UdonSharpBehaviour
             //ownername.text = $"Player {_owner.playerId}: {_owner.displayName}";
             ownername.text = $"{_owner.displayName}";
             //ownername.text = _owner.displayName;
-            Debug.Log($"对象 '{gameObject.name}' 的所有者是: {_owner.displayName}");
+            //Debug.Log($"对象 '{gameObject.name}' 的所有者是: {_owner.displayName}");
         }
         else
         {
             ownername.text = "Invalid owner";
-            Debug.Log($"对象 '{gameObject.name}' 当前没有有效的所有者。");
+            //Debug.Log($"对象 '{gameObject.name}' 当前没有有效的所有者。");
         }
     }
 

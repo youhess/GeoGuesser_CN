@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: New Material 1
+  m_Name: PinMaterial
   m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -53,7 +53,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 0}
-        m_Scale: {x: 1.9, y: 1}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
         m_Texture: {fileID: 0}
@@ -74,18 +74,24 @@ Material:
     m_Ints: []
     m_Floats:
     - _BumpScale: 1
+    - _CameraSize: 100
     - _ColorMask: 15
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
+    - _FollowPlayer: 1
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
+    - _MaxPlayers: 80
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
+    - _OtherPlayersDotSize: 1
     - _Parallax: 0.02
+    - _PlayerDotSize: 1
     - _Shininess: 0.2
+    - _ShowOthers: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
@@ -98,9 +104,13 @@ Material:
     - _UVSec: 0
     - _UseUIAlphaClip: 0
     - _ZWrite: 1
+    - _ZoomLevel: 3
     m_Colors:
-    - _Color: {r: 0.7764706, g: 0.8639039, b: 0.91823894, a: 0.89411765}
-    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _EmissionColor: {r: 22.120642, g: 27.371069, b: 27.371069, a: 1}
+    - _OtherPlayersDotColor: {r: 1, g: 1, b: 1, a: 1}
+    - _PlayerDotColor: {r: 1, g: 1, b: 1, a: 1}
+    - _PlayerPos: {r: 0, g: 0, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _Specular: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []

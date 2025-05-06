@@ -24,7 +24,7 @@ public class LocationRoundData : UdonSharpBehaviour
                 if (result.TokenType == TokenType.DataList)
                 {
                     locationDataList = result.DataList;
-                    Debug.Log($"Loaded {locationDataList.Count} locations");
+                    //Debug.Log($"Loaded {locationDataList.Count} locations");
                 }
             }
         }
@@ -94,7 +94,7 @@ public class LocationRoundData : UdonSharpBehaviour
             }
         }
 
-        Debug.Log($"[LocationRoundData] Got location at index {index}: ({latitude}, {longitude})");
+        //Debug.Log($"[LocationRoundData] Got location at index {index}: ({latitude}, {longitude})");
         return new Vector2(latitude, longitude);
     }
 

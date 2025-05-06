@@ -457,7 +457,7 @@ public class GameManager : UdonSharpBehaviour
     public float maxRoundTime = 120f;
 
     [UdonSynced]
-    public float revealTime = 30f;  // 揭晓阶段（默认30秒）
+    public float revealTime = 60f;  // 揭晓阶段（默认30秒）
     [Range(20, 120)]
     public float minRevealTime = 30f;
     [Range(20, 120)]
@@ -520,6 +520,10 @@ public class GameManager : UdonSharpBehaviour
 
     public GameObject introUIObject;        // UI 界面对象
     public GameObject videoPlayerObject;    // USharpVideo 的 GameObject（可能是 Screen 或 Controller）
+
+
+    private float stateCheckTimer = 0f;
+    private const float STATE_CHECK_INTERVAL = 1f; // 每5秒检查一次
 
     // Initialize the settings UI
     private void InitializeSettingsUI()
@@ -659,7 +663,7 @@ public class GameManager : UdonSharpBehaviour
 
         if (!Networking.IsOwner(gameObject))
         {
-            Debug.Log("只有房主可以应用设置");
+            //Debug.Log("只有房主可以应用设置");
             return;
         }
 
@@ -670,15 +674,25 @@ public class GameManager : UdonSharpBehaviour
         totalRounds = (int)totalRoundsSlider.value;
 
         RequestSerialization();
+        // 记录变量更新后的值
+        //Debug.Log($"应用后 - roundTime: {roundTime}, revealTime: {revealTime}, totalRounds: {totalRounds}");
 
         //// 先发送网络事件更新非所有者客户端UI
         SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateSettingsUI));
+
+        //// 然后进行序列化
+        //RequestSerialization();
+
+        //// 所有者本地更新UI
+        //UpdateSettingsUI();
+
+        //Debug.Log($"设置已应用 - 准备时间: {waitingTime}秒, 猜测时间: {roundTime}秒, 揭晓时间: {revealTime}秒, 总回合数: {totalRounds}");
     }
 
 
     void Start()
     {
-        Debug.Log("[GameManager] 初始化完成,我是房主吗？" + Networking.IsOwner(gameObject));
+        //Debug.Log("[GameManager] 初始化完成,我是房主吗？" + Networking.IsOwner(gameObject));
 
         localPlayer = Networking.LocalPlayer; // 获取本地玩家
 
@@ -744,12 +758,21 @@ public class GameManager : UdonSharpBehaviour
             }
         }
 
-        // 更新UI显示
-        if (waitingText != null)
+        // 添加定期状态检查
+        stateCheckTimer += Time.deltaTime;
+        if (stateCheckTimer >= STATE_CHECK_INTERVAL)
         {
-            if (countdownSeconds > 0 && countdownPhase > 0)
+            stateCheckTimer = 0f;
+
+            // 检查游戏状态是否显示正确
+            if (gameStarted && waitingText != null && countdownPhase > 0)
             {
-                waitingText.text = GetCountdownText(countdownSeconds);
+                string expectedText = GetCountdownText(countdownSeconds);
+                if (waitingText.text != expectedText)
+                {
+                    Debug.Log($"[GameManager] 检测到UI状态不同步，预期：{expectedText}，实际：{waitingText.text}");
+                    waitingText.text = expectedText;
+                }
             }
         }
     }
@@ -775,6 +798,7 @@ public class GameManager : UdonSharpBehaviour
         if (pinDataManager != null)
         {
             pinDataManager.InitializeRounds(totalRounds);
+            pinDataManager.ClearDataList();
         }
 
         // 初始化回合图片索引数组
@@ -805,7 +829,16 @@ public class GameManager : UdonSharpBehaviour
         }
 
 
-        waitingText.text = "Preparing！";
+        // 检查游戏状态是否显示正确
+        if (gameStarted && waitingText != null && countdownPhase > 0)
+        {
+            string expectedText = GetCountdownText(countdownSeconds);
+            if (waitingText.text != expectedText)
+            {
+                Debug.Log($"[GameManager] 检测到UI状态不同步，预期：{expectedText}，实际：{waitingText.text}");
+                waitingText.text = expectedText;
+            }
+        }
 
         //RequestSerialization();
 
@@ -896,6 +929,8 @@ public class GameManager : UdonSharpBehaviour
         roundImageIndices[currentRound] = currentImageIndex;
 
         RequestSerialization();
+        // 明确通知所有客户端更新UI状态
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateGameStateUI));
         // 显示图片
         SendCustomNetworkEvent(NetworkEventTarget.All, nameof(NetworkLoadPanorama));
         //增加音效
@@ -950,9 +985,12 @@ public class GameManager : UdonSharpBehaviour
         //// 显示地点信息
         //SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateLocationInfo));
 
+ 
+
         // 4. 发送单个网络事件来更新所有客户端的UI和状态
         SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateAnswerPinAndLineAndPhaseUI));
-
+        // 添加：确保所有客户端都显示正确的倒计时文本
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateGameStateUI));
         // 在这里预加载下一轮的图片
         PreloadNextImage();
 
@@ -1054,6 +1092,7 @@ public class GameManager : UdonSharpBehaviour
         // 如果我们已经使用了接近所有图片，可以考虑重置
         if (usedImagesAcrossSessions.Length >= imageUrls.Length * 0.8f)
         {
+            //Debug.Log("[GameManager] 大部分图片已使用过，重置部分历史记录");
             // 只保留最近使用的一半图片
             int[] recentHistory = new int[usedImagesAcrossSessions.Length / 2];
             for (int i = usedImagesAcrossSessions.Length / 2; i < usedImagesAcrossSessions.Length; i++)
@@ -1104,7 +1143,7 @@ public class GameManager : UdonSharpBehaviour
             {
                 if (isDuplicate && attempts >= maxAttempts)
                 {
-                    Debug.Log($"[GameManager] 达到最大尝试次数({maxAttempts})，接受重复索引: {newIndex}");
+                    //Debug.Log($"[GameManager] 达到最大尝试次数({maxAttempts})，接受重复索引: {newIndex}");
                 }
                 break;
             }
@@ -1119,10 +1158,12 @@ public class GameManager : UdonSharpBehaviour
     {
         if (nextImageIndex >= 0 && nextImageIndex < imageUrls.Length)
         {
+            //Debug.Log($"[GameManager] 预加载下一轮图片索引: {nextImageIndex}");
+
             // 检查是否已缓存该图片
             if (downloadedTextures[nextImageIndex] != null)
             {
-                Debug.Log($"[GameManager] 图片 {nextImageIndex} 已缓存，无需预加载");
+                //Debug.Log($"[GameManager] 图片 {nextImageIndex} 已缓存，无需预加载");
                 return;
             }
 
@@ -1186,7 +1227,7 @@ public class GameManager : UdonSharpBehaviour
                 }
                 else
                 {
-                    Debug.Log($"[Pin] Skipped showing line for held pin: {pickup.gameObject.name}");
+                    //Debug.Log($"[Pin] Skipped showing line for held pin: {pickup.gameObject.name}");
                 }
             }
         }
@@ -1374,6 +1415,9 @@ public class GameManager : UdonSharpBehaviour
         SendCustomNetworkEvent(NetworkEventTarget.All, nameof(NetworkLoadPanorama));
         //增加音效
         SendCustomNetworkEvent(NetworkEventTarget.All, nameof(PlayBeepVoice));
+
+        // 添加：确保所有客户端都显示正确的倒计时文本
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateGameStateUI));
     }
 
     private void UpdateResultsUI(Vector2 targetPos)
@@ -1388,14 +1432,14 @@ public class GameManager : UdonSharpBehaviour
 
     public void NetworkLoadPanorama()
     {
-        Debug.Log($"NetworkLoadPanorama - Player: {localPlayer.displayName}, Round: {currentRound}, Index: {currentImageIndex}");
+        //Debug.Log($"NetworkLoadPanorama - Player: {localPlayer.displayName}, Round: {currentRound}, Index: {currentImageIndex}");
 
         if (currentImageIndex >= 0 && currentImageIndex < imageUrls.Length && sphereRenderer != null)
         {
             // 首先检查是否已缓存该图片
             if (downloadedTextures[currentImageIndex] != null)
             {
-                Debug.Log($"Using cached texture for index {currentImageIndex}");
+                //Debug.Log($"Using cached texture for index {currentImageIndex}");
                 sphereRenderer.material.SetTexture("_MainTex", downloadedTextures[currentImageIndex]);
                 return;  // 使用缓存，直接返回
             }
@@ -1409,7 +1453,7 @@ public class GameManager : UdonSharpBehaviour
                 (IUdonEventReceiver)this,
                 textureInfo
             );
-            Debug.Log($"Started downloading image {currentImageIndex}");
+            //Debug.Log($"Started downloading image {currentImageIndex}");
         }
         else
         {
@@ -1420,7 +1464,7 @@ public class GameManager : UdonSharpBehaviour
     public override void OnImageLoadSuccess(IVRCImageDownload result)
     {
         string resultString = result.Result.ToString();
-        Debug.Log($"Image load success: {result.SizeInMemoryBytes} bytes: {resultString}");
+        //Debug.Log($"Image load success: {result.SizeInMemoryBytes} bytes: {resultString}");
 
         // 找出这是哪个URL对应的图片
         int imageIndex = -1;
@@ -1437,7 +1481,7 @@ public class GameManager : UdonSharpBehaviour
                 if (resultUrl == imageUrls[i].ToString())
                 {
                     imageIndex = i;
-                    Debug.Log($"匹配到图片索引: {i} 对应URL: {resultUrl}");
+                    //Debug.Log($"匹配到图片索引: {i} 对应URL: {resultUrl}");
                     break;
                 }
             }
@@ -1453,11 +1497,11 @@ public class GameManager : UdonSharpBehaviour
             if (imageIndex == currentImageIndex && sphereRenderer != null)
             {
                 sphereRenderer.material.SetTexture("_MainTex", result.Result);
-                Debug.Log($"Applied current texture (index {imageIndex}) for player {localPlayer.displayName}");
+                //Debug.Log($"Applied current texture (index {imageIndex}) for player {localPlayer.displayName}");
             }
             else
             {
-                Debug.Log($"Cached preloaded texture for index {imageIndex}");
+                //Debug.Log($"Cached preloaded texture for index {imageIndex}");
             }
         }
         else
@@ -1486,6 +1530,8 @@ public class GameManager : UdonSharpBehaviour
         if (pinDataManager != null)
         {
             pinDataManager.ResetAllPinsToOriginNetwork();   // 或者 DisableAllPins()
+            pinDataManager.InitializeRounds(totalRounds);   // 重新初始化回合数据，清理之前的数据
+            pinDataManager.ResetPlayerTotalScores();        // 重置玩家分数（虽然已经在StartGame中做了）
         }
 
         OpenSettingPanel();
@@ -1508,7 +1554,7 @@ public class GameManager : UdonSharpBehaviour
 
     public void ShowGameOverAndFinalScores()
     {
-        Debug.Log("Game Over!");
+        //Debug.Log("Game Over!");
         if (waitingText != null)
         {
             waitingText.text = "游戏结束！\n Game Over!";
@@ -1519,7 +1565,7 @@ public class GameManager : UdonSharpBehaviour
         // 切换回地球图片
         if (sphereRenderer != null && earthTexture != null)
         {
-            Debug.Log("Switching to Earth texture");
+            //Debug.Log("Switching to Earth texture");
             sphereRenderer.material.SetTexture("_MainTex", earthTexture);
         }
 
@@ -1601,27 +1647,45 @@ public class GameManager : UdonSharpBehaviour
     {
         UpdateStartButtonAndApplySettingsButtonState();
 
-        if (player == localPlayer && gameStarted)
+        // 当有新玩家加入时，如果游戏正在进行中，强制同步游戏状态
+        if (Networking.IsOwner(gameObject) && gameStarted)
         {
-            if (waitingText != null)
-            {
-                waitingText.text = $"Game in progress.\nPlease wait for next round.\n\n" +
-                                 $"Current Round: {currentRound + 1}/{totalRounds}\n" +
-                                 $"Time Left: {Mathf.CeilToInt(countdownTimer)}s";
-            }
+            Debug.Log($"新玩家加入：{player.displayName}，同步游戏状态");
+            SyncGameState();
         }
+
+
+
+        //if (player == localPlayer && gameStarted)
+        //{
+        //    if (waitingText != null)
+        //    {
+        //        waitingText.text = $"Game in progress.\nPlease wait for next round.\n\n" +
+        //                         $"Current Round: {currentRound + 1}/{totalRounds}\n" +
+        //                         $"Time Left: {Mathf.CeilToInt(countdownTimer)}s";
+        //    }
+        //}
     }
 
     public override void OnPlayerLeft(VRCPlayerApi player)
     {
         UpdateStartButtonAndApplySettingsButtonState();
-        Debug.Log($"Player {player.displayName} left");
+        //Debug.Log($"Player {player.displayName} left");
     }
 
     public override void OnOwnershipTransferred(VRCPlayerApi player)
     {
         UpdateStartButtonAndApplySettingsButtonState();
-        Debug.Log($"Ownership transferred to {player.displayName}");
+        //Debug.Log($"Ownership transferred to {player.displayName}");
+        // 如果我们是新的所有者，且游戏正在进行，确保状态正确
+        if (Networking.IsOwner(gameObject) && gameStarted)
+        {
+            Debug.Log("[GameManager] 我是新的房主，且游戏正在进行，同步游戏状态");
+            // 强制所有状态同步
+            RequestSerialization();
+            // 同步UI状态到所有客户端
+            SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateGameStateUI));
+        }
     }
 
     private void OnDestroy()
@@ -1633,42 +1697,100 @@ public class GameManager : UdonSharpBehaviour
     }
 
 
+    //public override void OnDeserialization()
+    //{
+    //    //Debug.Log($"[GameManager] OnDeserialization - currentImageIndex: {currentImageIndex}, Phase: {countdownPhase}");
+
+
+    //    // Update the UI to reflect any changes in settings
+    //    UpdateSettingsUI();
+
+    //    // 如果游戏已结束，确保UI正确显示
+    //    if (gameEnded && !gameStarted && waitingText != null)
+    //    {
+    //        waitingText.text = "游戏结束！\n Game Over!";
+    //        // 切换回地球图片
+    //        if (sphereRenderer != null && earthTexture != null)
+    //        {
+    //            //Debug.Log("Switching to Earth texture");
+    //            sphereRenderer.material.SetTexture("_MainTex", earthTexture);
+    //        }
+    //        return;
+    //    }
+
+    //    //// 如果图片索引有效且发生了变化，重新加载图片
+    //    //if (currentImageIndex >= 0 && currentImageIndex < imageUrls.Length)
+    //    //{
+    //    //    NetworkLoadPanorama();
+    //    //}
+
+    //    //// 如果 nextImageIndex 有效，开始预加载
+    //    //if (nextImageIndex >= 0 && nextImageIndex < imageUrls.Length)
+    //    //{
+    //    //    PreloadImageForNextRound();
+    //    //}
+
+    //    // ✅ 只有当游戏未结束时才执行这些逻辑
+    //    if (!gameEnded && gameStarted)
+    //    {
+    //        if (currentImageIndex >= 0 && currentImageIndex < imageUrls.Length)
+    //        {
+    //            NetworkLoadPanorama();
+    //        }
+
+    //        if (nextImageIndex >= 0 && nextImageIndex < imageUrls.Length)
+    //        {
+    //            PreloadImageForNextRound();
+    //        }
+    //    }
+
+
+    //}
+
     public override void OnDeserialization()
     {
-        Debug.Log($"[GameManager] OnDeserialization - currentImageIndex: {currentImageIndex}, Phase: {countdownPhase}");
+        Debug.Log($"[GameManager] OnDeserialization - gameStarted: {gameStarted}, gameEnded: {gameEnded}, Phase: {countdownPhase}, Seconds: {countdownSeconds}");
 
-
-        // Update the UI to reflect any changes in settings
+        // 始终更新设置UI
         UpdateSettingsUI();
 
-        // 如果游戏已结束，确保UI正确显示
-        if (gameEnded && !gameStarted && waitingText != null)
+        // 更新游戏状态相关UI和逻辑
+        if (gameStarted && !gameEnded)
         {
-            waitingText.text = "游戏结束！\n Game Over!";
+            // 更新倒计时显示
+            if (waitingText != null && countdownPhase > 0)
+            {
+                waitingText.text = GetCountdownText(countdownSeconds);
+            }
+
+            // 图片加载和预加载逻辑
+            if (currentImageIndex >= 0 && currentImageIndex < imageUrls.Length)
+            {
+                NetworkLoadPanorama();
+            }
+
+            if (nextImageIndex >= 0 && nextImageIndex < imageUrls.Length)
+            {
+                PreloadImageForNextRound();
+            }
+        }
+        else if (gameEnded)
+        {
+            // 游戏结束状态
+            if (waitingText != null)
+            {
+                waitingText.text = "游戏结束！\n Game Over!";
+            }
+
             // 切换回地球图片
             if (sphereRenderer != null && earthTexture != null)
             {
-                Debug.Log("Switching to Earth texture");
                 sphereRenderer.material.SetTexture("_MainTex", earthTexture);
             }
-            return;
         }
 
-        // 如果图片索引有效且发生了变化，重新加载图片
-        if (currentImageIndex >= 0 && currentImageIndex < imageUrls.Length)
-        {
-            NetworkLoadPanorama();
-        }
-
-        // 如果 nextImageIndex 有效，开始预加载
-        if (nextImageIndex >= 0 && nextImageIndex < imageUrls.Length)
-        {
-            PreloadImageForNextRound();
-        }
-
-
-
-
+        // 确保按钮状态正确
+        UpdateStartButtonAndApplySettingsButtonState();
     }
 
     // Add this method to update the UI based on synced values
@@ -1680,8 +1802,8 @@ public class GameManager : UdonSharpBehaviour
         //    waitingTimeSlider.value = waitingTime;
         //    UpdateWaitingTimeText();
         //}
-        Debug.Log("为什么你不触发啊啊啊啊啊啊啊");
-        Debug.Log($"[GameManager] UpdateSettingsUI - roundTime: {roundTime}, revealTime: {revealTime}, totalRounds: {totalRounds}");
+        //Debug.Log("为什么你不触发啊啊啊啊啊啊啊");
+        //Debug.Log($"[GameManager] UpdateSettingsUI - roundTime: {roundTime}, revealTime: {revealTime}, totalRounds: {totalRounds}");
         if (roundTimeSlider != null)
         {
             roundTimeSlider.value = roundTime;
@@ -1766,4 +1888,33 @@ public class GameManager : UdonSharpBehaviour
         if (worldLocationMap != null)
             worldLocationMap.SetActive(true);
     }
+
+    // 新增：强制同步游戏状态到所有客户端
+    public void SyncGameState()
+    {
+        if (Networking.IsOwner(gameObject))
+        {
+            RequestSerialization();
+            SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateGameStateUI));
+        }
+    }
+
+    // 新增：更新游戏状态UI
+    public void UpdateGameStateUI()
+    {
+        if (gameStarted && countdownPhase > 0)
+        {
+            // 同步倒计时阶段显示
+            if (waitingText != null)
+            {
+                waitingText.text = GetCountdownText(countdownSeconds);
+            }
+        }
+        else if (gameEnded)
+        {
+            ShowGameOverAndFinalScores();
+        }
+    }
+
+
 }
