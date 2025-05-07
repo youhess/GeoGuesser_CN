@@ -520,6 +520,7 @@ public class GameManager : UdonSharpBehaviour
 
     public GameObject introUIObject;        // UI 界面对象
     public GameObject videoPlayerObject;    // USharpVideo 的 GameObject（可能是 Screen 或 Controller）
+    public GameObject wechatCanvas; // 微信分享的 Canvas
 
 
     private float stateCheckTimer = 0f;
@@ -1887,6 +1888,19 @@ public class GameManager : UdonSharpBehaviour
 
         if (worldLocationMap != null)
             worldLocationMap.SetActive(true);
+    }
+
+    public void OnToggleWechatCanvas()
+    {
+        //增加音效
+        if (audioSource != null && buttonSound != null)
+        {
+            audioSource.PlayOneShot(buttonSound);
+        }
+
+        if (wechatCanvas != null)
+            wechatCanvas.SetActive(!wechatCanvas.activeSelf);
+
     }
 
     // 新增：强制同步游戏状态到所有客户端
