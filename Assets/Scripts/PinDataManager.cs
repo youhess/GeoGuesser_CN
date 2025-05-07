@@ -182,16 +182,27 @@ public class PinDataManager : UdonSharpBehaviour
             if (dataList.TryGetValue(i, TokenType.DataDictionary, out DataToken dataToken))
             {
                 DataDictionary dataPoint = dataToken.DataDictionary;
-
                 // 检查当前 DataDictionary 是否包含相同的 playerId
-                if (dataPoint.TryGetValue("id", TokenType.Int, out DataToken idToken) && idToken.Int == playerId)
+                if (dataPoint.TryGetValue("id", out DataToken idToken)) // 不指定类型
                 {
-                    // 更新经纬度
-                    dataPoint.SetValue("latitude", pinCoordinates.x);
-                    dataPoint.SetValue("longitude", pinCoordinates.y);
-                    dataPoint.SetValue("isPlaced", isPlacedOnMap);
-                    playerFound = true;
-                    break;
+                    int storedId;
+                    // 根据实际类型获取值
+                    if (idToken.TokenType == TokenType.Int)
+                        storedId = idToken.Int;
+                    else if (idToken.TokenType == TokenType.Double)
+                        storedId = (int)idToken.Double;
+                    else
+                        storedId = int.Parse(idToken.ToString());
+
+                    if (storedId == playerId)
+                    {
+                        // 更新经纬度
+                        dataPoint.SetValue("latitude", pinCoordinates.x);
+                        dataPoint.SetValue("longitude", pinCoordinates.y);
+                        dataPoint.SetValue("isPlaced", isPlacedOnMap);
+                        playerFound = true;
+                        break;
+                    }
                 }
             }
         }
@@ -898,6 +909,18 @@ public class PinDataManager : UdonSharpBehaviour
     {
         playerTotalScores = new DataDictionary(); // 清空
         serializedPlayerScores = "{}"; // 清空序列化数据
+
+        // 创建新的空数组
+        roundAnswers = new DataList[totalRounds];
+        serializedRoundAnswers = new string[totalRounds];
+
+        // 初始化每个元素
+        for (int i = 0; i < totalRounds; i++)
+        {
+            roundAnswers[i] = new DataList();
+            serializedRoundAnswers[i] = "";
+        }
+
         RequestSerialization(); // 确保同步
     }
 
