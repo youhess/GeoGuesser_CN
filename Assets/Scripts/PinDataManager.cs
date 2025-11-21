@@ -22,7 +22,7 @@ public class PinDataManager : UdonSharpBehaviour
 
     // 存储每轮的答案
     private DataList[] roundAnswers;
-    [UdonSynced] private string[] serializedRoundAnswers = new string[0]; 
+    [UdonSynced] private string[] serializedRoundAnswers = new string[0];
     public TextMeshProUGUI gameDataStoreageText;
 
     [UdonSynced]
@@ -32,7 +32,7 @@ public class PinDataManager : UdonSharpBehaviour
     public TextMeshProUGUI roundScoresText;
 
     // 添加一个用于存储当前轮次得分的字符串=
-    [UdonSynced] 
+    [UdonSynced]
     private string currentRoundScoresText = "";
 
     //[UdonSynced]
@@ -52,9 +52,9 @@ public class PinDataManager : UdonSharpBehaviour
         // 可以根据需要继续添加更多的数据点
     };
     [UdonSynced] private string serializedData; // 用于同步的 JSON 字符串
-    //private DataDictionary playerData; // 存储玩家的经纬度信息
-     // 用 DataDictionary 存储玩家分数
-    
+                                                //private DataDictionary playerData; // 存储玩家的经纬度信息
+                                                // 用 DataDictionary 存储玩家分数
+
     DataDictionary playerTotalScores = new DataDictionary();
 
     // Add this to your existing variable declarations in PinDataManager.cs
@@ -102,7 +102,7 @@ public class PinDataManager : UdonSharpBehaviour
         // 应该每一个客户端都调用一次
         UpdatePinVisibility();
         //SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdatePinVisibility)); // 有可能要在所有客户端执行，onDeserialization不一定会触发
-        
+
     }
     public void SetHideOtherPins()
     {
@@ -131,7 +131,7 @@ public class PinDataManager : UdonSharpBehaviour
             serializedRoundAnswers[i] = "";
             //Debug.Log($"[PinDataManager] 初始化回合 {i}");
         }
-        
+
         // 同步修改，确保其他客户端也收到更新
         RequestSerialization();
 
@@ -438,7 +438,7 @@ public class PinDataManager : UdonSharpBehaviour
     {
         if (gameDataStoreageText == null) return;
 
-       
+
         StringBuilder storageText = new StringBuilder("Game Round Data:\n");
         for (int i = 0; i < totalRounds; i++)
         {
@@ -470,7 +470,7 @@ public class PinDataManager : UdonSharpBehaviour
                 storageText.AppendLine("No data");
             }
             storageText.AppendLine();
-        } 
+        }
         Debug.Log($"[PinDataManager] 更新游戏回合数据UI{storageText.ToString()}");
         gameDataStoreageText.text = storageText.ToString();
     }
@@ -883,8 +883,8 @@ public class PinDataManager : UdonSharpBehaviour
             int playerId = int.Parse(keyArray[i].Split('_')[1]);
             VRCPlayerApi player = VRCPlayerApi.GetPlayerById(playerId);
 
-           
-           
+
+
             if (player != null)
             {
                 sortedScoreText.AppendLine($"{numberNo + 1}: {player.displayName}: {scoreArray[i]:F0}");
@@ -1033,49 +1033,73 @@ public class PinDataManager : UdonSharpBehaviour
     }
 
     // 新增：处理所有权变更后的UI同步
-public void SyncUIAfterOwnershipChange()
-{
-    UpdateRoundScoresUI();
-    UpdateGameRoundDataUI();
-}
-
-    private float CalculateScore(Vector2 correctAnswer, Vector2 playerGuess, bool isPlacedOnMap)
+    public void SyncUIAfterOwnershipChange()
     {
-        // If Pin isn't placed on the map, return 0 points
-        if (!isPlacedOnMap)
-        {
-            return 0;
-        }
+        UpdateRoundScoresUI();
+        UpdateGameRoundDataUI();
+    }
 
-        // Calculate distance (using Euclidean distance)
-        float distance = Vector2.Distance(correctAnswer, playerGuess);
+    // private float CalculateScore(Vector2 correctAnswer, Vector2 playerGuess, bool isPlacedOnMap)
+    // {
+    //     // If Pin isn't placed on the map, return 0 points
+    //     if (!isPlacedOnMap)
+    //     {
+    //         return 0;
+    //     }
 
-        //Debug.Log($"[PinDataManager] Distance: {distance}");
+    //     // Calculate distance (using Euclidean distance)
+    //     float distance = Vector2.Distance(correctAnswer, playerGuess);
 
-        // More sensitive score calculation
+    //     //Debug.Log($"[PinDataManager] Distance: {distance}");
+
+    //     // More sensitive score calculation
+    //     float maxScore = 100f;
+    //     float maxDistance = 15f; // Reduced from 1000 to make scoring more sensitive to distance
+
+    //     // Optional: Add a minimum score threshold for very close guesses
+    //     float minDistance = 1f; // Within 5 units is considered "very close"
+
+    //     if (distance <= minDistance)
+    //     {
+    //         // Very close guesses get max or near-max points
+    //         return maxScore * 0.95f + (minDistance - distance) / minDistance * (maxScore * 0.05f);
+    //     }
+    //     else if (distance >= maxDistance)
+    //     {
+    //         // Too far gets 0 points
+    //         return 0;
+    //     }
+    //     else
+    //     {
+    //         // Use a non-linear curve to make score drop more quickly with distance
+    //         // This creates more meaningful differentiation between close and far pins
+    //         float normalizedDistance = (distance - minDistance) / (maxDistance - minDistance);
+    //         return maxScore * 0.95f * (1 - Mathf.Pow(normalizedDistance, 2));
+    //     }
+    // }
+
+    private float CalculateScore(Vector2 correct, Vector2 guess, bool isPlaced)
+    {
+        if (!isPlaced) return 0f;
+
+        const float EarthRadiusKm = 6371f;
+        float dLat = Mathf.Deg2Rad * (guess.x - correct.x);
+        float dLon = Mathf.Deg2Rad * (guess.y - correct.y);
+        float lat1 = Mathf.Deg2Rad * correct.x;
+        float lat2 = Mathf.Deg2Rad * guess.x;
+        float a = Mathf.Sin(dLat * 0.5f) * Mathf.Sin(dLat * 0.5f) +
+                  Mathf.Cos(lat1) * Mathf.Cos(lat2) *
+                  Mathf.Sin(dLon * 0.5f) * Mathf.Sin(dLon * 0.5f);
+        float distanceKm = 2f * EarthRadiusKm * Mathf.Asin(Mathf.Min(1f, Mathf.Sqrt(a)));
+
         float maxScore = 100f;
-        float maxDistance = 15f; // Reduced from 1000 to make scoring more sensitive to distance
+        float minDistanceKm = 10f;    // 命中半径
+        float maxDistanceKm = 1500f;  // 超过即 0 分
+        if (distanceKm <= minDistanceKm) return maxScore;
+        if (distanceKm >= maxDistanceKm) return 0f;
 
-        // Optional: Add a minimum score threshold for very close guesses
-        float minDistance = 1f; // Within 5 units is considered "very close"
-
-        if (distance <= minDistance)
-        {
-            // Very close guesses get max or near-max points
-            return maxScore * 0.95f + (minDistance - distance) / minDistance * (maxScore * 0.05f);
-        }
-        else if (distance >= maxDistance)
-        {
-            // Too far gets 0 points
-            return 0;
-        }
-        else
-        {
-            // Use a non-linear curve to make score drop more quickly with distance
-            // This creates more meaningful differentiation between close and far pins
-            float normalizedDistance = (distance - minDistance) / (maxDistance - minDistance);
-            return maxScore * 0.95f * (1 - Mathf.Pow(normalizedDistance, 2));
-        }
+        float t = (distanceKm - minDistanceKm) / (maxDistanceKm - minDistanceKm); // 0..1
+        return maxScore * (1f - t); // 线性衰减
     }
 
     private void UpdatePinVisibility()
@@ -1155,7 +1179,7 @@ public void SyncUIAfterOwnershipChange()
 
         //Debug.Log("OnDeserialization called");
 
-   
+
 
         // 更新轮次得分 UI
         UpdateRoundScoresUI();
@@ -1285,7 +1309,7 @@ public void SyncUIAfterOwnershipChange()
             }
         }
 
-             // 添加这部分来反序列化玩家分数
+        // 添加这部分来反序列化玩家分数
         if (!string.IsNullOrEmpty(serializedPlayerScores))
         {
             if (VRCJson.TryDeserializeFromJson(serializedPlayerScores, out DataToken scoreToken) &&
@@ -1349,4 +1373,4 @@ public void SyncUIAfterOwnershipChange()
         // 发送网络事件，确保所有客户端都归位
         SendCustomNetworkEvent(NetworkEventTarget.All, nameof(ResetAllPinsToOrigin));
     }
-    }
+}
