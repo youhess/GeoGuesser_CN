@@ -172,6 +172,16 @@ public class PinDataManager : UdonSharpBehaviour
     // 更新玩家的 Pin 经纬度数据 
     public void UpdatePlayerPinData(int playerId, Vector2 pinCoordinates, bool isPlacedOnMap)
     {
+        // Only the owner should write shared data to avoid lost updates
+        if (!Networking.IsOwner(gameObject))
+        {
+            Networking.SetOwner(Networking.LocalPlayer, gameObject);
+            if (!Networking.IsOwner(gameObject))
+            {
+                Debug.LogWarning("[PinDataManager] Non-owner tried to update player pin data; ignored.");
+                return;
+            }
+        }
         //Debug.Log($"UpdatePlayerPinData: {playerId}, {pinCoordinates}, placed: {isPlacedOnMap}");
 
         bool playerFound = false;
@@ -925,6 +935,14 @@ public class PinDataManager : UdonSharpBehaviour
     }
 
     // 添加一个 UI 更新方法，可以被网络事件调用
+    public void ResetPlayerTotalScoresAndUI()
+    {
+        ResetPlayerTotalScores();
+        currentRoundScoresText = "";
+        UpdateRoundScoresUI();
+        RequestSerialization();
+    }
+
     public void UpdateRoundScoresUI()
     {
         if (roundScoresText != null)
@@ -1210,7 +1228,7 @@ public class PinDataManager : UdonSharpBehaviour
                 roundAnswers[i] = new DataList();
                 serializedRoundAnswers[i] = "";
             }
-            return; // 首次初始化直接返回，等待下一次同步
+            // 首次初始化后继续向下执行反序列化和UI更新
         }
 
         // 检查数组大小是否需要调整

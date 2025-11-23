@@ -481,6 +481,10 @@ public class PinController : UdonSharpBehaviour
             // 通知PinDataManager状态更新
             if (pinDataManager != null && _owner != null)
             {
+                if (!Networking.IsOwner(pinDataManager.gameObject))
+                {
+                    Networking.SetOwner(Networking.LocalPlayer, pinDataManager.gameObject);
+                }
                 // 使用当前位置的经纬度，但标记为未放置
                 Vector2 currentPosition = new Vector2(0, 0); // 或者使用上次有效的位置
                 pinDataManager.UpdatePlayerPinData(_owner.playerId, currentPosition, false);
@@ -511,6 +515,10 @@ public class PinController : UdonSharpBehaviour
         {
             coordinateText.text = $"Lat: {latLong.x:F2}\nLong: {latLong.y:F2}";
             // 然后让传下当前的经纬度
+            if (!Networking.IsOwner(pinDataManager.gameObject))
+            {
+                Networking.SetOwner(Networking.LocalPlayer, pinDataManager.gameObject);
+            }
             pinDataManager.UpdatePlayerPinData(_owner.playerId, latLong, isPlacedOnMap);
 
         }
@@ -540,6 +548,10 @@ public class PinController : UdonSharpBehaviour
         if (pinDataManager != null && _owner != null)
         {
             Vector2 defaultPosition = new Vector2(0, 0);
+            if (!Networking.IsOwner(pinDataManager.gameObject))
+            {
+                Networking.SetOwner(Networking.LocalPlayer, pinDataManager.gameObject);
+            }
             pinDataManager.UpdatePlayerPinData(_owner.playerId, defaultPosition, false);
         }
     }
