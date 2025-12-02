@@ -13,7 +13,6 @@ using BestHTTP.SecureProtocol.Org.BouncyCastle.Ocsp;
 using System;
 using Cyan.PlayerObjectPool;
 using VRC.SDKBase.Midi;
-using static System.Net.WebRequestMethods;
 
 [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
 public class GameManager : UdonSharpBehaviour
@@ -37,11 +36,9 @@ public class GameManager : UdonSharpBehaviour
     // Initialize VRCUrl array
     //private VRCUrl[] imageUrls = { 
     //new VRCUrl("https://raw.githubusercontent.com/youhess/Geoguesser-China-data/main/01.jpg"),
-    //new VRCUrl("https://youhesschan.oss-cn-hangzhou.aliyuncs.com/02.jpg"),
-    //    new VRCUrl("https://gitee.com/youhess/Geoguesser-China-data/raw/main/01.jpg"),
     //};
 
-    private VRCUrl[] imageUrls = {
+   private VRCUrl[] imageUrls = {
  new VRCUrl("https://cdn.jsdelivr.net/gh/youhess/Geoguesser-China-data@main/1.jpg"),
  new VRCUrl("https://cdn.jsdelivr.net/gh/youhess/Geoguesser-China-data@main/2.jpg"),
  new VRCUrl("https://cdn.jsdelivr.net/gh/youhess/Geoguesser-China-data@main/3.jpg"),
@@ -514,6 +511,7 @@ public class GameManager : UdonSharpBehaviour
     public TextMeshProUGUI revealTimeText;    // 显示揭晓阶段时间的文本
     public TextMeshProUGUI totalRoundsText;   // 显示总回合数的文本
     public TextMeshProUGUI LocationText;      // 显示地点信息的文本
+    public TextMeshProUGUI OwnerText;        // 显示所有者信息的文本
     public UnityEngine.UI.Button applySettingsButton; // 应用设置按钮
     public UnityEngine.UI.Button toggleSettingsButton; // 切换设置面板按钮
 
@@ -615,9 +613,6 @@ public class GameManager : UdonSharpBehaviour
 
     private float stateCheckTimer = 0f;
     private const float STATE_CHECK_INTERVAL = 1f; // 每5秒检查一次
-
-    public TextMeshProUGUI ownerText;
-
 
     // Initialize the settings UI
     private void InitializeSettingsUI()
@@ -800,12 +795,26 @@ public class GameManager : UdonSharpBehaviour
 
         // Initialize settings UI
         InitializeSettingsUI();
+
         UpdateStartButtonAndApplySettingsButtonState();
 
 
         if (waitingText != null)
         {
             waitingText.text = "";
+        }
+
+        if (OwnerText != null)
+        {
+            VRCPlayerApi owner = Networking.GetOwner(gameObject);
+            if (owner != null)
+            {
+                OwnerText.text = "Owner: " + owner.displayName;
+            }
+            else
+            {
+                OwnerText.text = "Owner: None";
+            }
         }
     }
 
@@ -867,15 +876,6 @@ public class GameManager : UdonSharpBehaviour
                     waitingText.text = expectedText;
                 }
             }
-        }
-    }
-
-    public void DisplayOwnerName()
-    {
-        VRCPlayerApi owner = Networking.GetOwner(gameObject);
-        if (ownerText != null && owner != null)
-        {
-            ownerText.text = "房主: " + owner.displayName;
         }
     }
 
@@ -1031,14 +1031,12 @@ public class GameManager : UdonSharpBehaviour
         roundImageIndices[currentRound] = currentImageIndex;
 
         RequestSerialization();
-        //// 明确通知所有客户端更新UI状态
-        //SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateGameStateUI));
-        //// 显示图片
-        //SendCustomNetworkEvent(NetworkEventTarget.All, nameof(NetworkLoadPanorama));
-        ////增加音效
-        //SendCustomNetworkEvent(NetworkEventTarget.All, nameof(PlayBeepVoice));
-        // 使用单个网络事件更新所有客户端的UI、加载图片和播放音效
-        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateGuessingPhaseStateAndLoadImage));
+        // 明确通知所有客户端更新UI状态
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateGameStateUI));
+        // 显示图片
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(NetworkLoadPanorama));
+        //增加音效
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(PlayBeepVoice));
 
 
         countdownPhase = 2;
@@ -1048,22 +1046,6 @@ public class GameManager : UdonSharpBehaviour
         waitingText.text = $"猜测时间！{roundTime} 秒";
 
 
-    }
-
-    // 新增合并方法：处理进入猜测阶段的所有UI和音效更新
-    public void UpdateGuessingPhaseStateAndLoadImage()
-    {
-        // 1. 更新UI状态
-        if (waitingText != null && countdownPhase > 0)
-        {
-            waitingText.text = GetCountdownText(countdownSeconds);
-        }
-
-        // 2. 加载并显示全景图片
-        NetworkLoadPanorama();
-
-        // 3. 播放音效提示
-        PlayBeepVoice();
     }
 
     public void PlayBeepVoice()
@@ -1105,12 +1087,12 @@ public class GameManager : UdonSharpBehaviour
         //// 显示地点信息
         //SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateLocationInfo));
 
+ 
 
-        UpdateAnswerPinAndLineAndPhaseUI();
         // 4. 发送单个网络事件来更新所有客户端的UI和状态
         SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateAnswerPinAndLineAndPhaseUI));
-        //// 添加：确保所有客户端都显示正确的倒计时文本
-        //SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateGameStateUI));
+        // 添加：确保所有客户端都显示正确的倒计时文本
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateGameStateUI));
         // 在这里预加载下一轮的图片
         PreloadNextImage();
 
@@ -1137,8 +1119,6 @@ public class GameManager : UdonSharpBehaviour
 
         // 更新地点信息
         UpdateLocationInfo();
-
-        UpdateGameStateUI();
     }
 
     private void PreloadNextImage()
@@ -1534,23 +1514,12 @@ public class GameManager : UdonSharpBehaviour
         roundImageIndices[currentRound] = currentImageIndex;
 
         RequestSerialization();
-        //SendCustomNetworkEvent(NetworkEventTarget.All, nameof(NetworkLoadPanorama));
-        ////增加音效
-        //SendCustomNetworkEvent(NetworkEventTarget.All, nameof(PlayBeepVoice));
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(NetworkLoadPanorama));
+        //增加音效
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(PlayBeepVoice));
 
-        //// 添加：确保所有客户端都显示正确的倒计时文本
-        //SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateGameStateUI));
-
-        // 触发所有客户端更新UI状态
-        StartNewRoundSteps();
-        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(StartNewRoundSteps));
-    }
-
-    private void StartNewRoundSteps()
-    {
-        NetworkLoadPanorama();
-        UpdateGameStateUI();
-        PlayBeepVoice();
+        // 添加：确保所有客户端都显示正确的倒计时文本
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(UpdateGameStateUI));
     }
 
     private void UpdateResultsUI(Vector2 targetPos)
@@ -1643,7 +1612,6 @@ public class GameManager : UdonSharpBehaviour
         }
     }
 
-
     public override void OnImageLoadError(IVRCImageDownload result)
     {
         Debug.LogError($"Failed to load image: {result.Error}");
@@ -1729,8 +1697,6 @@ public class GameManager : UdonSharpBehaviour
         TextMeshProUGUI buttonText = startButton.GetComponentInChildren<TextMeshProUGUI>(); // 获取按钮文本组件
         TextMeshProUGUI applySettingsText = applySettingsButton.GetComponentInChildren<TextMeshProUGUI>(); // 获取按钮文本组件
 
-        DisplayOwnerName();
-
         if (gameStarted)
         {
             //startButton.SetActive(false);
@@ -1755,10 +1721,9 @@ public class GameManager : UdonSharpBehaviour
 
         if (buttonText)
         {
-            //buttonText.text = !isOwner ? "Owner Only" :
-            //                !canStart ? $"Need {minPlayers} players" :
-            //                "Start Game";
-            buttonText.text = !isOwner ? "Owner Only" : "Start Game";
+            buttonText.text = !isOwner ? "Owner Only" :
+                            !canStart ? $"Need {minPlayers} players" :
+                            "Start Game";
         }
 
         // 更新应用设置按钮

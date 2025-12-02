@@ -14622,6 +14622,7 @@ MonoBehaviour:
   revealTimeText: {fileID: 1096108156}
   totalRoundsText: {fileID: 1124753178}
   LocationText: {fileID: 585557570}
+  OwnerText: {fileID: 897208464}
   applySettingsButton: {fileID: 563052229}
   toggleSettingsButton: {fileID: 0}
   locationData: {fileID: 2117173452}
@@ -14650,7 +14651,6 @@ MonoBehaviour:
   introUIObject: {fileID: 1784336817}
   videoPlayerObject: {fileID: 1124439806}
   wechatCanvas: {fileID: 560426386}
-  ownerText: {fileID: 897208464}
 --- !u!82 &2117173458
 AudioSource:
   m_ObjectHideFlags: 0
